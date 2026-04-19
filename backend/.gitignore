@@ -26,5 +26,9 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Prisma
-/generated/prisma
+# Build output
+dist/
+build/
+
+# Prisma generated client (if output dir is customized)
+generated/
