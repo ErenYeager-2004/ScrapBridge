@@ -1,0 +1,161 @@
+// ScrapBridge v2.0 — Prisma Schema
+// Task 1.2: Full database schema definition
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum Role {
+  HOME_USER
+  ADMIN
+  COLLECTOR
+  BUYER
+}
+
+enum RequestStatus {
+  PENDING
+  QUOTED
+  REJECTED
+  SCHEDULED
+  COLLECTED
+  COMPLETED
+}
+
+enum MaterialType {
+  STEEL
+  COPPER
+  ALUMINIUM
+  BRASS
+  PLASTIC
+  PET_BOTTLES
+  CARDBOARD
+  PAPER
+  GLASS
+  EWASTE
+}
+
+enum OrderStatus {
+  PLACED
+  CONFIRMED
+  DELIVERED
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model User {
+  id                 String        @id @default(uuid())
+  name               String
+  email              String        @unique
+  password           String
+  phone              String?
+  role               Role          @default(HOME_USER)
+  isVerified         Boolean       @default(false)
+  verificationToken  String?
+  resetToken         String?
+  resetTokenExpiry   DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  // Relations
+  requests           ScrapRequest[]  @relation("UserRequests")
+  assignedPickups    ScrapRequest[]  @relation("CollectorPickups")
+  notifications      Notification[]
+  orders             BuyerOrder[]
+  feedback           Feedback[]
+}
+
+model ScrapRequest {
+  id               String         @id @default(uuid())
+  userId           String
+  collectorId      String?
+  status           RequestStatus  @default(PENDING)
+  items            Json
+  photos           Json
+  pickupAddress    String
+  contactPhone     String
+  adminPrice       Decimal?
+  adminNotes       String?
+  rejectionReason  String?
+  scheduledDate    DateTime?
+  receiptPath      String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  // Relations
+  user             User           @relation("UserRequests", fields: [userId], references: [id])
+  collector        User?          @relation("CollectorPickups", fields: [collectorId], references: [id])
+  inventory        Inventory?
+  feedback         Feedback?
+
+  // Indexes
+  @@index([userId])
+  @@index([collectorId])
+  @@index([status])
+}
+
+model Inventory {
+  id           String       @id @default(uuid())
+  requestId    String       @unique
+  materialType MaterialType
+  weightKg     Decimal
+  pricePerKg   Decimal
+  available    Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  // Relations
+  request      ScrapRequest  @relation(fields: [requestId], references: [id])
+  orders       BuyerOrder[]
+}
+
+model BuyerOrder {
+  id           String      @id @default(uuid())
+  buyerId      String
+  inventoryId  String
+  quantityKg   Decimal
+  totalPrice   Decimal
+  status       OrderStatus @default(PLACED)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relations
+  buyer        User        @relation(fields: [buyerId], references: [id])
+  inventory    Inventory   @relation(fields: [inventoryId], references: [id])
+
+  // Indexes
+  @@index([buyerId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id])
+
+  // Indexes
+  @@index([userId])
+  @@index([read])
+}
+
+model Feedback {
+  id        String       @id @default(uuid())
+  requestId String       @unique
+  userId    String
+  rating    Int
+  comment   String?
+  createdAt DateTime     @default(now())
+
+  // Relations
+  request   ScrapRequest @relation(fields: [requestId], references: [id])
+  user      User         @relation(fields: [userId], references: [id])
+}
