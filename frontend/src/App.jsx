@@ -1,121 +1,89 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 
-function App() {
-  const [count, setCount] = useState(0)
+import { AuthProvider } from './context/AuthContext';
+import { DarkModeProvider } from './context/DarkModeContext';
 
+import ProtectedRoute from './routes/ProtectedRoute';
+import RoleRoute from './routes/RoleRoute';
+
+// Public pages
+import Landing from './pages/public/Landing';
+import Login from './pages/public/Login';
+import Register from './pages/public/Register';
+import VerifyEmail from './pages/public/VerifyEmail';
+import Unauthorized from './pages/public/Unauthorized';
+
+// Layout
+import DashboardLayout from './components/layout/DashboardLayout';
+
+// Role dashboards
+import AdminDashboard from './pages/admin/AdminDashboard';
+import UserDashboard from './pages/homeuser/UserDashboard';
+import CollectorDashboard from './pages/collector/CollectorDashboard';
+import BuyerDashboard from './pages/buyer/BuyerDashboard';
+
+export default function App() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <DarkModeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: '#1f2937',
+                color: '#f9fafb',
+                border: '1px solid #374151',
+              },
+            }}
+          />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
 
-      <div className="ticks"></div>
+            {/* Protected — ADMIN */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<RoleRoute allowedRoles={['ADMIN']} />}>
+                <Route path="/admin" element={<DashboardLayout />}>
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                </Route>
+              </Route>
+            </Route>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+            {/* Protected — HOME_USER */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<RoleRoute allowedRoles={['HOME_USER']} />}>
+                <Route path="/user" element={<DashboardLayout />}>
+                  <Route path="dashboard" element={<UserDashboard />} />
+                </Route>
+              </Route>
+            </Route>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+            {/* Protected — COLLECTOR */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<RoleRoute allowedRoles={['COLLECTOR']} />}>
+                <Route path="/collector" element={<DashboardLayout />}>
+                  <Route path="dashboard" element={<CollectorDashboard />} />
+                </Route>
+              </Route>
+            </Route>
+
+            {/* Protected — BUYER */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<RoleRoute allowedRoles={['BUYER']} />}>
+                <Route path="/buyer" element={<DashboardLayout />}>
+                  <Route path="dashboard" element={<BuyerDashboard />} />
+                </Route>
+              </Route>
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </DarkModeProvider>
+  );
 }
-
-export default App

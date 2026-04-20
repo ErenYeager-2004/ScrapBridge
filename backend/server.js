@@ -5,6 +5,11 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 
+// ── Route Imports ──────────────────────────────────────────────────────────────
+import authRoutes         from "./src/routes/auth.routes.js";
+import requestRoutes      from "./src/routes/request.routes.js";
+import notificationRoutes from "./src/routes/notification.routes.js";
+
 // ESM __dirname workaround
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +29,11 @@ app.use(express.json());
 // ── Static Files ───────────────────────────────────────────────────────────────
 // Uploaded images served at /uploads/<filename>
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// ── API Routes ────────────────────────────────────────────────────────────────
+app.use("/api/auth",          authRoutes);
+app.use("/api/requests",      requestRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // ── Health Check ───────────────────────────────────────────────────────────────
 app.get("/api/health", (req, res) => {
