@@ -12,6 +12,8 @@ import { requireRole } from "./src/middleware/role.middleware.js";
 import authRoutes         from "./src/routes/auth.routes.js";
 import requestRoutes      from "./src/routes/request.routes.js";
 import notificationRoutes from "./src/routes/notification.routes.js";
+import inventoryRoutes    from "./src/routes/inventory.routes.js";
+import orderRoutes        from "./src/routes/order.routes.js";
 
 // ESM __dirname workaround
 const __filename = fileURLToPath(import.meta.url);
@@ -37,6 +39,8 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth",          authRoutes);
 app.use("/api/requests",      requestRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/inventory",     inventoryRoutes);
+app.use("/api/orders",        orderRoutes);
 
 // ── Collector List (used by Admin quote form) ─────────────────────────────────
 // GET /api/collectors → returns all users with role COLLECTOR

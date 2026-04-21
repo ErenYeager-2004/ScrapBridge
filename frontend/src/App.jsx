@@ -23,6 +23,8 @@ import DashboardLayout from './components/layout/DashboardLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AllRequests from './pages/admin/AllRequests';
 import AdminRequestDetail from './pages/admin/RequestDetail';
+import AllOrders from './pages/admin/AllOrders';
+import InventoryManager from './pages/admin/InventoryManager';
 
 // Home User pages
 import UserDashboard from './pages/homeuser/UserDashboard';
@@ -37,6 +39,8 @@ import PickupDetail from './pages/collector/PickupDetail';
 
 // Buyer pages
 import BuyerDashboard from './pages/buyer/BuyerDashboard';
+import BrowseInventory from './pages/buyer/BrowseInventory';
+import OrderHistory from './pages/buyer/OrderHistory';
 
 export default function App() {
   return (
@@ -71,6 +75,8 @@ export default function App() {
                   <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="requests" element={<AllRequests />} />
                   <Route path="requests/:id" element={<AdminRequestDetail />} />
+                  <Route path="orders" element={<AllOrders />} />
+                  <Route path="inventory" element={<InventoryManager />} />
                 </Route>
               </Route>
             </Route>
@@ -106,6 +112,8 @@ export default function App() {
                 <Route path="/buyer" element={<DashboardLayout />}>
                   <Route index element={<Navigate to="dashboard" replace />} />
                   <Route path="dashboard" element={<BuyerDashboard />} />
+                  <Route path="inventory" element={<BrowseInventory />} />
+                  <Route path="orders" element={<OrderHistory />} />
                 </Route>
               </Route>
             </Route>

@@ -402,7 +402,8 @@ export const completeRequest = async (req, res) => {
         data: {
           requestId: existing.id,
           materialType: primaryItem.materialType || "STEEL",
-          weightKg: totalWeight,
+          totalKg: totalWeight,
+          // reservedKg defaults to 0 (schema default)
           pricePerKg,
           available: true,
         },

@@ -152,7 +152,11 @@ frontend/src/
     └── formatters.js
 
 ## Current Phase
-Phase 4 — Buyer Module
+Phase 5 — PDF Receipt Generation
+
+### Phase 4 — Buyer Module — ✅ Complete
+- Task 4.1 Inventory & Order Controllers + Routes — ✅ Complete
+- Task 4.2 Buyer & Admin Frontend Pages — ✅ Complete
 
 ### Phase 3 — Email Verification & Password Reset — ✅ Complete
 - Task 3.1 Nodemailer Config, Email Service & Auth Controller — ✅ Complete
@@ -172,8 +176,8 @@ Phase 4 — Buyer Module
 | 1 | Authentication System | ✅ Complete |
 | 2 | Core Pickup Request Flow | ✅ Complete |
 | 3 | Email Verification & Password Reset | ✅ Complete |
-| 4 | Buyer Module | ⬜ Not started |
-| 5 | PDF Receipt Generation | ⬜ Not started |
+| 4 | Buyer Module | ✅ Complete |
+| 5 | PDF Receipt Generation | 🔄 In Progress |
 | 6 | Rating & Feedback System | ⬜ Not started |
 | 7 | Admin Dashboard Enhancements | ⬜ Not started |
 | 8 | CSV Export | ⬜ Not started |
@@ -256,6 +260,30 @@ Phase 4 — Buyer Module
 - backend/src/services/email.service.js (new: sendVerificationEmail, sendPasswordResetEmail, sendPickupNotificationEmail)
 - backend/src/controllers/auth.controller.js (updated: register now sets isVerified=false + sends verification email; verifyEmail, forgotPassword, resetPassword fully implemented)
 - backend/src/routes/auth.routes.js (updated: replaced 501 stubs with real verifyEmail/forgotPassword/resetPassword controller bindings)
+- backend/src/controllers/inventory.controller.js (new: getInventory with ?materialType/minWeight/maxPrice filters + getAllInventory admin view)
+- backend/src/controllers/order.controller.js (new: placeOrder with $transaction, getMyOrders, getAllOrders, confirmOrder, deliverOrder)
+- backend/src/routes/inventory.routes.js (new: GET / ADMIN|BUYER, GET /all ADMIN)
+- backend/src/routes/order.routes.js (new: POST /, GET /my BUYER, GET / ADMIN, PATCH /:id/confirm ADMIN, PATCH /:id/deliver ADMIN)
+- backend/server.js (updated: added inventoryRoutes + orderRoutes imports and mounts)
+- frontend/src/api/inventory.api.js (new: getInventory with filters, getAllInventory)
+- frontend/src/api/orders.api.js (new: placeOrder, getMyOrders, getAllOrders, confirmOrder, deliverOrder)
+- frontend/src/pages/buyer/BrowseInventory.jsx (new: filter bar, 3-col card grid, inline order modal with qty input + price preview)
+- frontend/src/pages/buyer/OrderHistory.jsx (new: buyer's orders table with StatusBadge)
+- frontend/src/pages/buyer/BuyerDashboard.jsx (replaced stub: 3 stat cards + inventory highlights + recent orders table)
+- frontend/src/pages/admin/AllOrders.jsx (new: all orders table with per-row Confirm / Mark Delivered action buttons)
+- frontend/src/pages/admin/InventoryManager.jsx (new: full inventory table with material + availability filters)
+- frontend/src/App.jsx (updated: added /buyer/inventory, /buyer/orders, /admin/orders, /admin/inventory routes)
+- [BugFix] backend/prisma/schema.prisma (updated: weightKg → totalKg, added reservedKg @default(0), added CANCELLED to OrderStatus enum)
+- [BugFix] backend/src/controllers/inventory.controller.js (rewritten: computes availableKg = totalKg - reservedKg; buyers receive only availableKg; admins see all three)
+- [BugFix] backend/src/controllers/order.controller.js (rewritten: atomic reservation model — placeOrder guards stock with transaction; confirmOrder decrements totalKg+reservedKg; cancelOrder releases reservedKg; deliverOrder inventory-neutral)
+- [BugFix] backend/src/controllers/request.controller.js (updated: inventory create uses totalKg instead of weightKg)
+- [BugFix] backend/src/routes/order.routes.js (updated: added PATCH /:id/cancel ADMIN route)
+- [BugFix] frontend/src/api/orders.api.js (updated: added cancelOrder function)
+- [BugFix] frontend/src/pages/buyer/BrowseInventory.jsx (rewritten: uses availableKg; client-side qty guard; updated materialType list to match DB enum)
+- [BugFix] frontend/src/pages/buyer/BuyerDashboard.jsx (updated: highlights use availableKg, not weightKg)
+- [BugFix] frontend/src/pages/admin/InventoryManager.jsx (rewritten: 3-column weight view Total/Reserved/Available; colour-coded cells; badge uses availableKg > 0)
+- [BugFix] frontend/src/pages/admin/AllOrders.jsx (updated: Cancel button for PLACED orders with ConfirmModal; imports cancelOrder)
+- [BugFix] frontend/src/components/common/StatusBadge.jsx (updated: added CANCELLED style)
 
 ## Task Completion Log
 (Append a short entry after each task)
@@ -275,6 +303,9 @@ Phase 4 — Buyer Module
 - [Task 3.2] VerifyEmail, ForgotPassword, and ResetPassword frontend pages built. Updated: frontend/src/pages/public/VerifyEmail.jsx (full implementation: reads token/?success=true from URL, calls GET /api/auth/verify-email?token=TOKEN, shows loading/success/error/idle states). Created: frontend/src/pages/public/ForgotPassword.jsx (centred card, single email input, always shows safe 'link sent' message), frontend/src/pages/public/ResetPassword.jsx (reads token from URL, client-side password match validation, calls POST /api/auth/reset-password, auto-navigates to /login after 2s on success). Updated: frontend/src/api/auth.api.js (added verifyEmail function), frontend/src/App.jsx (added /forgot-password and /reset-password routes), frontend/src/pages/public/Login.jsx (added 'Forgot Password?' link + 403 verify-email yellow alert). Phase 3 complete.
 - [Task Misc] Adjusted ESLint rules: changed `no-unused-vars` from `error` to `warn` in `frontend/eslint.config.js` to show yellow squiggles instead of red for unused variables.
 - [Misc] Added `mail.md` to `.gitignore` to prevent tracking of internal email templates/notes.
+- [Task 4.1] Inventory and Order backend APIs implemented. Created: inventory.controller.js (getInventory with materialType/minWeight/maxPrice query filters + include source request info; getAllInventory for admin with orders count), order.controller.js (placeOrder uses prisma.$transaction to atomically create order + flip inventory.available=false + notify all admins; getMyOrders for buyer; getAllOrders for admin; confirmOrder + deliverOrder each update status and send buyer notification). Created: inventory.routes.js, order.routes.js (all routes role-protected with verifyToken + requireRole). server.js updated to mount /api/inventory and /api/orders.
+- [Task 4.2] Buyer and Admin frontend pages implemented. Created: inventory.api.js (getInventory + getAllInventory), orders.api.js (placeOrder, getMyOrders, getAllOrders, confirmOrder, deliverOrder). BrowseInventory.jsx: filter bar (material type dropdown + min weight + max price), 3-col colour-coded card grid, inline order modal with quantity input, live total price preview, validation, and post-order refetch. OrderHistory.jsx: buyer's orders table with StatusBadge, formatWeight/formatCurrency. BuyerDashboard.jsx (replaced stub): 3 stat cards (Total Orders, Active Orders, Total Spent from DELIVERED), inventory highlights top-3 mini-cards with Browse All link, recent 5 orders table. AllOrders.jsx (admin): all orders table with per-row Confirm (PLACED) and Mark Delivered (CONFIRMED) action buttons with spinner feedback and toast messages. InventoryManager.jsx (admin): full inventory table with material type + availability toggle filters, Yes/No availability badge, total value column. App.jsx updated to add /buyer/inventory, /buyer/orders, /admin/orders, /admin/inventory routes. Phase 4 complete.
+- [Bug Fix] Inventory reservation model implemented. Root cause: placeOrder was blindly flipping available=false on the whole inventory item, causing overselling and phantom stock disappearance. Fix: renamed Inventory.weightKg → totalKg, added Inventory.reservedKg @default(0), added CANCELLED to OrderStatus enum. New behaviour — placeOrder atomically increments reservedKg by quantityKg and checks availableKg (= totalKg − reservedKg) > 0 before proceeding. confirmOrder decrements both totalKg and reservedKg (sale finalised). cancelOrder decrements only reservedKg (stock released). deliverOrder is inventory-neutral. Inventory is hidden from buyers only when availableKg reaches 0. Admin sees all three columns (Total / Reserved / Available) in InventoryManager with colour-coded cells. Buyers only see availableKg. Requires migration: npx prisma migrate dev --name inventory_reservation_model.
 
 
 ## Deviations from Original Plan
@@ -289,9 +320,14 @@ We initially attempted to use Prisma v7 which requires a runtime driver adapter 
 - Created a dedicated MySQL user `scrapbridge` with password `scrap123` to avoid root authentication plugin issues in XAMPP.
 - Repaired corrupt `mysql.db` system table in XAMPP.
 
+### Inventory Reservation Model (Bug Fix — Post Task 4.2)
+- The original schema used `weightKg` (a single field) and flipped `available=false` on the entire inventory item when any order was placed — causing overselling and phantom stock disappearance.
+- Fixed by renaming `weightKg` → `totalKg` and adding `reservedKg @default(0)` to the Inventory model, and adding `CANCELLED` to the `OrderStatus` enum.
+- All controllers updated to use the three-column model. Migration: `inventory_reservation_model`.
+
 ## Notes for Next Session
-- Phases 1, 2, and 3 are fully complete.
-- **Phase 4:** Buyer Module — BrowseInventory page, OrderHistory page, buyer order API endpoints.
+- Phases 1, 2, 3, and 4 are fully complete.
+- **Phase 5 Next:** PDF Receipt Generation — implement pdfkit receipt generation endpoint (GET /api/requests/:id/receipt), enable the disabled receipt button in homeuser/RequestDetail.jsx.
 - **Phase 3 — Email Testing Blocked:** The VerifyEmail and ForgotPassword/ResetPassword flows are fully implemented (backend + frontend) but **cannot be tested yet** because `EMAIL_USER` and `EMAIL_PASS` have not been set in `backend/.env`.
   - To unblock: create a Gmail account for the app → enable 2-Step Verification → generate an App Password (Google → Security → App Passwords) → add to `backend/.env` as `EMAIL_USER` and `EMAIL_PASS`.
   - Once configured, test: Register new user → verify email link → login; and Forgot Password → reset link → reset password → login with new password.

@@ -13,6 +13,7 @@ const STATUS_STYLES = {
   PLACED:    'bg-blue-100 text-blue-800',
   CONFIRMED: 'bg-purple-100 text-purple-800',
   DELIVERED: 'bg-emerald-100 text-emerald-800',
+  CANCELLED: 'bg-red-100 text-red-700',
 };
 
 /**

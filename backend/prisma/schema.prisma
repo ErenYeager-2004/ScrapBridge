@@ -45,6 +45,7 @@ enum OrderStatus {
   PLACED
   CONFIRMED
   DELIVERED
+  CANCELLED
 }
 
 // ─── Models ──────────────────────────────────────────────────────────────────
@@ -104,9 +105,10 @@ model Inventory {
   id           String       @id @default(uuid())
   requestId    String       @unique
   materialType MaterialType
-  weightKg     Decimal
+  totalKg      Decimal                       // total weight originally listed
+  reservedKg   Decimal      @default(0)      // sum of pending PLACED orders
   pricePerKg   Decimal
-  available    Boolean      @default(true)
+  available    Boolean      @default(true)   // true when (totalKg - reservedKg) > 0
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
