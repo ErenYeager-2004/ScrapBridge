@@ -21,7 +21,7 @@ const notifyAdmins = async (message) => {
  */
 export const createRequest = async (req, res) => {
   try {
-    const { pickupAddress, contactPhone } = req.body;
+    const { pickupAddress, contactPhone = "" } = req.body;
     let items = req.body.items;
 
     // items arrives as a JSON string from multipart/form-data
@@ -421,7 +421,33 @@ export const completeRequest = async (req, res) => {
   }
 };
 
-// ── k. Notification Helpers ───────────────────────────────────────────────────
+// ── k. getAssignedPickups ─────────────────────────────────────────────────────
+
+/**
+ * GET /api/requests/assigned
+ * Role: COLLECTOR
+ * Returns requests where collectorId = req.user.id
+ * Supports optional ?status= filter
+ */
+export const getAssignedPickups = async (req, res) => {
+  try {
+    const where = { collectorId: req.user.id };
+    if (req.query.status) where.status = req.query.status;
+
+    const requests = await prisma.scrapRequest.findMany({
+      where,
+      include: { user: true, collector: true },
+      orderBy: { scheduledDate: 'asc' },
+    });
+
+    return res.status(200).json({ requests });
+  } catch (err) {
+    console.error('[getAssignedPickups]', err);
+    return res.status(500).json({ error: 'Internal server error.' });
+  }
+};
+
+// ── l. Notification Helpers ───────────────────────────────────────────────────
 
 /**
  * GET /api/notifications/my

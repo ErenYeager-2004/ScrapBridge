@@ -42,19 +42,15 @@ router.post("/login", authLimiter, loginValidator, validate, login);
 // Get current authenticated user's profile
 router.get("/me", verifyToken, getMe);
 
-// ── Phase 3 Stubs ──────────────────────────────────────────────────────────────
-// Returns 501 Not Implemented until Phase 3 is built.
+// ── Phase 3 — Email Verification & Password Reset ─────────────────────────────
 
-router.post("/forgot-password", (_req, res) =>
-  res.status(501).json({ message: "Not implemented yet. Coming in Phase 3." })
-);
+// Verify email via token link (GET link in verification email)
+router.get("/verify-email", verifyEmail);
 
-router.post("/reset-password", (_req, res) =>
-  res.status(501).json({ message: "Not implemented yet. Coming in Phase 3." })
-);
+// Initiate a password-reset flow
+router.post("/forgot-password", forgotPassword);
 
-router.get("/verify-email", (_req, res) =>
-  res.status(501).json({ message: "Not implemented yet. Coming in Phase 3." })
-);
+// Complete the password-reset flow (token + new password)
+router.post("/reset-password", resetPassword);
 
 export default router;

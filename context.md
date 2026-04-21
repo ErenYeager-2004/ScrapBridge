@@ -152,7 +152,11 @@ frontend/src/
     └── formatters.js
 
 ## Current Phase
-Phase 2 — Core Pickup Request Flow
+Phase 4 — Buyer Module
+
+### Phase 3 — Email Verification & Password Reset — ✅ Complete
+- Task 3.1 Nodemailer Config, Email Service & Auth Controller — ✅ Complete
+- Task 3.2 VerifyEmail, ForgotPassword & ResetPassword Frontend Pages — ✅ Complete
 
 ### Phase 1 — Authentication System — ✅ Complete
 - Task 1.1 Backend Middleware & Config — ✅ Complete
@@ -166,8 +170,8 @@ Phase 2 — Core Pickup Request Flow
 |-------|------|--------|
 | 0 | Environment Setup | ✅ Done (manual) |
 | 1 | Authentication System | ✅ Complete |
-| 2 | Core Pickup Request Flow | ✅ Task 2.1 Complete |
-| 3 | Email Verification & Password Reset | ⬜ Not started |
+| 2 | Core Pickup Request Flow | ✅ Complete |
+| 3 | Email Verification & Password Reset | ✅ Complete |
 | 4 | Buyer Module | ⬜ Not started |
 | 5 | PDF Receipt Generation | ⬜ Not started |
 | 6 | Rating & Feedback System | ⬜ Not started |
@@ -218,8 +222,40 @@ Phase 2 — Core Pickup Request Flow
 - frontend/src/main.jsx (verified)
 - backend/src/services/notification.service.js
 - backend/src/controllers/request.controller.js
-- backend/src/routes/request.routes.js
+- backend/src/validators/request.validator.js
+- backend/src/routes/request.routes.js (updated: validator chains + receipt 501 placeholder)
 - backend/src/routes/notification.routes.js
+- backend/server.js (updated: prisma/verifyToken/requireRole imports + GET /api/collectors inline route)
+- frontend/src/utils/formatters.js
+- frontend/src/components/common/StatusBadge.jsx
+- frontend/src/components/common/ConfirmModal.jsx
+- frontend/src/components/common/StarRating.jsx
+- frontend/src/components/common/DataTable.jsx
+- frontend/src/components/common/NotificationBell.jsx
+- frontend/src/components/common/DarkModeToggle.jsx
+- frontend/src/components/forms/ImageUpload.jsx
+- frontend/src/components/common/Sidebar.jsx (replaced stub with full role-aware nav)
+- frontend/src/api/requests.api.js
+- frontend/src/components/common/Navbar.jsx (updated: added NotificationBell + DarkModeToggle imports)
+- frontend/src/pages/homeuser/NewRequest.jsx
+- frontend/src/pages/homeuser/RequestHistory.jsx
+- frontend/src/pages/homeuser/RequestDetail.jsx
+- frontend/src/pages/homeuser/UserDashboard.jsx (replaced stub with full dashboard)
+- frontend/src/App.jsx (updated: added /user/new-request, /user/requests, /user/requests/:id routes)
+- backend/src/controllers/request.controller.js (updated: added getAssignedPickups controller)
+- backend/src/routes/request.routes.js (updated: added GET /api/requests/assigned for COLLECTOR)
+- frontend/src/api/requests.api.js (updated: added getAssignedPickups API function)
+- frontend/src/pages/admin/AllRequests.jsx
+- frontend/src/pages/admin/RequestDetail.jsx (Admin view)
+- frontend/src/pages/admin/AdminDashboard.jsx (replaced stub: 4 stat cards + recent requests table)
+- frontend/src/pages/collector/AssignedPickups.jsx
+- frontend/src/pages/collector/PickupDetail.jsx
+- frontend/src/pages/collector/CollectorDashboard.jsx (replaced stub: 3 stat cards + today/upcoming sections)
+- frontend/src/App.jsx (updated: added admin requests, admin request detail, collector pickups, collector pickup detail routes)
+- backend/src/config/nodemailer.js (new: Nodemailer transporter using Gmail/Mailtrap; reads EMAIL_USER + EMAIL_PASS from .env)
+- backend/src/services/email.service.js (new: sendVerificationEmail, sendPasswordResetEmail, sendPickupNotificationEmail)
+- backend/src/controllers/auth.controller.js (updated: register now sets isVerified=false + sends verification email; verifyEmail, forgotPassword, resetPassword fully implemented)
+- backend/src/routes/auth.routes.js (updated: replaced 501 stubs with real verifyEmail/forgotPassword/resetPassword controller bindings)
 
 ## Task Completion Log
 (Append a short entry after each task)
@@ -231,6 +267,15 @@ Phase 2 — Core Pickup Request Flow
 - [Task 1.4] Frontend API layer and auth context set up. tailwind.config.js updated (darkMode: class, content paths). index.css replaced with Tailwind directives + --brand: #1A7A4A. vite.config.js updated with /api proxy to localhost:5000. Created: src/api/axios.js (Axios instance with JWT interceptors), src/api/auth.api.js (login, register, getMe, forgotPassword, resetPassword), src/context/AuthContext.jsx (user/token/loading state, session restore on mount), src/hooks/useAuth.js (context consumer hook), src/hooks/useFetch.js (generic data-fetching hook with refetch).
 - [Task 1.5] Public pages, routing, and dashboard shells built. Created: DarkModeContext (stub), ProtectedRoute (loading spinner → token check → isVerified check), RoleRoute (allowedRoles prop), Landing (hero + 3-step section), Login (dark glassmorphism card, role-redirects), Register (all fields, HOME_USER + BUYER roles only), VerifyEmail (placeholder), Unauthorized (403 page), AdminDashboard/UserDashboard/CollectorDashboard/BuyerDashboard (stubs), Sidebar (stub with user info), Navbar (functional logout), DashboardLayout (fixed sidebar + navbar + Outlet), App.jsx (full BrowserRouter with nested ProtectedRoute + RoleRoute + DashboardLayout), main.jsx (StrictMode). Phase 1 complete.
 - [Task 2.1] Notification service and full Request controller implemented. All 11 lifecycle endpoints (Create, My, All, GetByID, Quote, Reject, Respond, Schedule, Collect, Complete) and Notification helpers (GetMy, MarkRead) are wired and role-protected. Inventory is auto-populated upon request completion. Server updated to include /api/requests and /api/notifications routes.
+- [Task 2.2] Request validator (request.validator.js) created with 5 chains: createRequestValidator, quoteRequestValidator, respondValidator, scheduleValidator, rejectValidator. request.routes.js rewired with validator chains + validate middleware on all mutation endpoints; /:id/receipt 501 placeholder added. notification.routes.js confirmed complete. server.js updated: prisma/verifyToken/requireRole imports added + GET /api/collectors inline route (ADMIN-only, returns all COLLECTOR users). Bug fix: contactPhone defaulted to "" in createRequest controller (schema field is required/non-nullable). Live test passed: full PENDING→QUOTED→SCHEDULED→COLLECTED lifecycle verified via curl with all 4 seed users. Notifications firing correctly.
+- [Task 2.3] All shared/common frontend components built. Created: formatters.js (formatDate, formatCurrency, formatWeight, capitalize, getRelativeTime), StatusBadge (9 status colours), ConfirmModal (optional textarea, backdrop dismiss), StarRating (interactive + readOnly via lucide-react Star), DataTable (filterable, empty state, onRowClick), NotificationBell (fetch /my on mount, unread badge, dropdown, mark-all-read), DarkModeToggle (Moon/Sun from DarkModeContext), ImageUpload (drag-drop, max 5 files, JPEG/PNG/WEBP, thumbnail previews with remove). Sidebar stub replaced with full role-aware NavLink nav (ADMIN 6 links, HOME_USER 3, COLLECTOR 3, BUYER 3) using lucide-react icons + #1A7A4A active state. requests.api.js created with all 11 lifecycle functions. Bug fix: Navbar.jsx updated to import and render NotificationBell + DarkModeToggle (these components were built in 2.3 but Navbar stub from Phase 1 had no reference to them).
+- [Task 2.4] Home User request pages implemented. Created: NewRequest.jsx (3-step form: materials with add/remove, location & contact, photo upload; builds FormData and calls createRequest; navigates to /user/requests on success), RequestHistory.jsx (table with status filter, summarised items, StatusBadge, empty state), RequestDetail.jsx (materials table, pickup details, photos, admin notes, quote accept/reject with ConfirmModal, schedule info, completion banner with disabled receipt button), UserDashboard.jsx (replaced stub: 3 stat cards, QUOTED alert with respond button, large new-request CTA, recent-5 requests table). App.jsx updated to wire /user/new-request, /user/requests, /user/requests/:id routes.
+- [Task 2.5] Admin + Collector views implemented. Backend: getAssignedPickups controller added (GET /api/requests/assigned, COLLECTOR role, filters by collectorId); route wired in request.routes.js; getAssignedPickups added to requests.api.js. Frontend: admin/AllRequests.jsx (full-width filterable table with status/date/search filters, View button → /admin/requests/:id), admin/RequestDetail.jsx (60/40 two-column layout; action panel varies by status — quote form for PENDING, awaiting label for QUOTED, schedule info for SCHEDULED, Mark Complete for COLLECTED, completion banner for COMPLETED/REJECTED), admin/AdminDashboard.jsx (replaced stub: 4 stat cards + recent requests table), collector/AssignedPickups.jsx (status filter, table with View button), collector/PickupDetail.jsx (contact/address/materials/photos + Mark as Collected with ConfirmModal), collector/CollectorDashboard.jsx (3 stat cards, Today's Pickups cards, Upcoming Pickups list). App.jsx updated to add all 4 new routes. Phase 2 complete.
+- [Task 3.1] Nodemailer config + email service + auth controller Phase 3 flows implemented. Created: backend/src/config/nodemailer.js (Gmail/Mailtrap transporter), backend/src/services/email.service.js (sendVerificationEmail — styled HTML + verify link; sendPasswordResetEmail — amber-themed, 1-hour expiry warning; sendPickupNotificationEmail — green notification email). Updated: auth.controller.js (register now sets isVerified=false, generates UUID verificationToken, saves it, sends verification email non-blocking; verifyEmail reads ?token from query, finds user, sets isVerified=true + clears token, redirects to CLIENT_URL/verify-email?success=true; forgotPassword always returns 200, generates UUID resetToken + expiry 1h, emails link; resetPassword validates token + expiry > now, hashes new password, clears reset fields). auth.routes.js: 501 stubs replaced with real controller wiring.
+- [Task 3.2] VerifyEmail, ForgotPassword, and ResetPassword frontend pages built. Updated: frontend/src/pages/public/VerifyEmail.jsx (full implementation: reads token/?success=true from URL, calls GET /api/auth/verify-email?token=TOKEN, shows loading/success/error/idle states). Created: frontend/src/pages/public/ForgotPassword.jsx (centred card, single email input, always shows safe 'link sent' message), frontend/src/pages/public/ResetPassword.jsx (reads token from URL, client-side password match validation, calls POST /api/auth/reset-password, auto-navigates to /login after 2s on success). Updated: frontend/src/api/auth.api.js (added verifyEmail function), frontend/src/App.jsx (added /forgot-password and /reset-password routes), frontend/src/pages/public/Login.jsx (added 'Forgot Password?' link + 403 verify-email yellow alert). Phase 3 complete.
+- [Task Misc] Adjusted ESLint rules: changed `no-unused-vars` from `error` to `warn` in `frontend/eslint.config.js` to show yellow squiggles instead of red for unused variables.
+- [Misc] Added `mail.md` to `.gitignore` to prevent tracking of internal email templates/notes.
+
 
 ## Deviations from Original Plan
 
@@ -245,7 +290,11 @@ We initially attempted to use Prisma v7 which requires a runtime driver adapter 
 - Repaired corrupt `mysql.db` system table in XAMPP.
 
 ## Notes for Next Session
-- Phase 1 is fully complete. All Tasks 1.1–1.5 done.
-- **Next Phase:** Phase 2 — Core Pickup Request Flow (ScrapRequest CRUD: Home User submits, Admin reviews/quotes, Collector marks collected).
+- Phases 1, 2, and 3 are fully complete.
+- **Phase 4:** Buyer Module — BrowseInventory page, OrderHistory page, buyer order API endpoints.
+- **Phase 3 — Email Testing Blocked:** The VerifyEmail and ForgotPassword/ResetPassword flows are fully implemented (backend + frontend) but **cannot be tested yet** because `EMAIL_USER` and `EMAIL_PASS` have not been set in `backend/.env`.
+  - To unblock: create a Gmail account for the app → enable 2-Step Verification → generate an App Password (Google → Security → App Passwords) → add to `backend/.env` as `EMAIL_USER` and `EMAIL_PASS`.
+  - Once configured, test: Register new user → verify email link → login; and Forgot Password → reset link → reset password → login with new password.
+  - Until then, newly registered users will be stuck at `isVerified=false` and cannot log in. Manually set `isVerified=true` in the DB to test other flows.
 - Current Test User: `test@example.com` / `password123` (HOME_USER role).
-- To create an ADMIN test user, register via API with role: ADMIN or update DB directly.
+

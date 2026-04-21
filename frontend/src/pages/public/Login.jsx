@@ -17,6 +17,7 @@ export default function Login() {
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [verifyAlert, setVerifyAlert] = useState('');
 
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -31,8 +32,14 @@ export default function Login() {
       toast.success(`Welcome back, ${user.name}!`);
       navigate(ROLE_REDIRECTS[user.role] ?? '/');
     } catch (err) {
+      const status = err?.response?.status;
       const msg = err?.response?.data?.message ?? 'Login failed. Please try again.';
-      toast.error(msg);
+      // 403 + verify-email hint → show yellow alert instead of toast
+      if (status === 403 && msg.toLowerCase().includes('verif')) {
+        setVerifyAlert(msg);
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -53,6 +60,16 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Verify email alert */}
+          {verifyAlert && (
+            <div className="flex items-start gap-2 px-4 py-3 bg-yellow-900/40 border border-yellow-500/50 rounded-lg text-yellow-300 text-sm">
+              <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+              <span>{verifyAlert} Please check your inbox for the verification link.</span>
+            </div>
+          )}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1.5">
               Email address
@@ -85,6 +102,17 @@ export default function Login() {
               placeholder="••••••••"
               className="w-full px-4 py-2.5 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500 transition"
             />
+          </div>
+
+          {/* Forgot password link */}
+          <div className="flex justify-end">
+            <Link
+              to="/forgot-password"
+              id="login-forgot-password"
+              className="text-sm text-green-400 hover:text-green-300 transition-colors font-medium"
+            >
+              Forgot Password?
+            </Link>
           </div>
 
           <button

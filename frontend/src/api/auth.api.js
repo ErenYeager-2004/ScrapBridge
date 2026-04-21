@@ -1,4 +1,5 @@
 import api from './axios';
+import axios from 'axios';
 
 /**
  * Login a user with email and password.
@@ -35,3 +36,10 @@ export const forgotPassword = (email) =>
  */
 export const resetPassword = (token, newPassword) =>
   api.post('/auth/reset-password', { token, newPassword });
+
+/**
+ * Verify email using the token from the verification link.
+ * @param {string} token
+ */
+export const verifyEmail = (token) =>
+  axios.get(`/api/auth/verify-email?token=${token}`);

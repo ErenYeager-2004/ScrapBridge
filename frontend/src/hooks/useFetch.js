@@ -28,3 +28,8 @@ export function useFetch(fetcherFn, deps = []) {
 
   return { data, loading, error, refetch: fetch };
 }
+
+// Default export alias so both import styles work:
+//   import useFetch from '...'         ← used by new pages
+//   import { useFetch } from '...'     ← used by existing pages
+export default useFetch;
