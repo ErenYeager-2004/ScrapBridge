@@ -194,10 +194,10 @@ export default function AdminRequestDetail() {
                 <ImageIcon size={14} /> Photos
               </h2>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {photos.map((src, i) => (
-                  <a key={i} href={src} target="_blank" rel="noopener noreferrer">
+                {photos.map((photoPath, i) => (
+                  <a key={i} href={photoPath} target="_blank" rel="noopener noreferrer">
                     <img
-                      src={src}
+                      src={photoPath}
                       alt={`scrap-photo-${i}`}
                       className="w-full h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700 hover:opacity-80 transition-opacity"
                     />

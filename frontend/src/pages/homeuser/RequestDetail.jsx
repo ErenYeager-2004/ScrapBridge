@@ -12,11 +12,15 @@ import {
   Download,
   CheckCircle,
   XCircle,
+  Star,
+  MessageSquare,
 } from 'lucide-react';
 import { useFetch } from '../../hooks/useFetch';
-import { getRequestById, respondToQuote } from '../../api/requests.api';
+import { getRequestById, respondToQuote, downloadReceipt } from '../../api/requests.api';
+import { submitFeedback } from '../../api/feedback.api';
 import StatusBadge from '../../components/common/StatusBadge';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import StarRating from '../../components/common/StarRating';
 import { formatDate, formatCurrency, formatWeight } from '../../utils/formatters';
 
 const MATERIAL_LABELS = {
@@ -41,6 +45,13 @@ export default function RequestDetail() {
   const [acceptModalOpen, setAcceptModalOpen] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [responding, setResponding]           = useState(false);
+  const [downloading, setDownloading]         = useState(false);
+
+  // Feedback form state
+  const [feedbackRating,  setFeedbackRating]  = useState(0);
+  const [feedbackComment, setFeedbackComment] = useState('');
+  const [submittingFB,    setSubmittingFB]    = useState(false);
+  const [fbSubmitted,     setFbSubmitted]     = useState(false);
 
   const { data, loading, error, refetch } = useFetch(
     () => getRequestById(id),
@@ -76,6 +87,44 @@ export default function RequestDetail() {
       toast.error(err?.response?.data?.message ?? 'Failed to reject quote');
     } finally {
       setResponding(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      await downloadReceipt(id);
+    } catch (err) {
+      toast.error(err?.response?.data?.message ?? 'Failed to download receipt. Please try again.');
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleSubmitFeedback = async () => {
+    if (feedbackRating === 0) {
+      toast.error('Please select a star rating before submitting.');
+      return;
+    }
+    setSubmittingFB(true);
+    try {
+      await submitFeedback({
+        requestId: id,
+        rating:    feedbackRating,
+        comment:   feedbackComment.trim() || undefined,
+      });
+      toast.success('Thank you for your feedback!');
+      setFbSubmitted(true);
+      refetch();
+    } catch (err) {
+      const status = err?.response?.status;
+      if (status === 409) {
+        toast.error('You have already submitted feedback for this request.');
+      } else {
+        toast.error(err?.response?.data?.error ?? 'Failed to submit feedback.');
+      }
+    } finally {
+      setSubmittingFB(false);
     }
   };
 
@@ -218,15 +267,15 @@ export default function RequestDetail() {
       {req.photos && req.photos.length > 0 && (
         <Section title="Photos">
           <div className="flex flex-wrap gap-3">
-            {req.photos.map((filename, idx) => (
+            {req.photos.map((photoPath, idx) => (
               <a
                 key={idx}
-                href={`http://localhost:5000/uploads/${filename}`}
+                href={photoPath}
                 target="_blank"
                 rel="noreferrer"
               >
                 <img
-                  src={`http://localhost:5000/uploads/${filename}`}
+                  src={photoPath}
                   alt={`Photo ${idx + 1}`}
                   className="w-24 h-24 object-cover rounded-xl border border-gray-200 dark:border-gray-600 hover:opacity-80 transition-opacity"
                 />
@@ -271,21 +320,116 @@ export default function RequestDetail() {
           <CheckCircle size={36} className="text-emerald-600 shrink-0" />
           <div className="flex-1">
             <h3 className="font-bold text-emerald-800 dark:text-emerald-300">
-              Pickup Completed!
+              ✓ Pickup Completed!
             </h3>
             <p className="text-sm text-emerald-700 dark:text-emerald-400 mt-0.5">
-              Your scrap has been successfully collected.
+              Your scrap has been successfully collected. Your receipt is ready to download.
             </p>
           </div>
-          <button
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-medium transition-colors opacity-60 cursor-not-allowed"
-            title="PDF receipt generation coming in Phase 5"
-            disabled
-          >
-            <Download size={15} /> Download Receipt
-          </button>
+          {req.receiptPath && (
+            <button
+              onClick={handleDownload}
+              disabled={downloading}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors"
+            >
+              {downloading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Preparing…
+                </>
+              ) : (
+                <>
+                  <Download size={15} /> Download PDF Receipt
+                </>
+              )}
+            </button>
+          )}
         </div>
       )}
+
+      {/* ── Feedback section (COMPLETED only) ── */}
+      {isCompleted && (() => {
+        const existingFeedback = req.feedback;
+        const hasSubmitted = fbSubmitted || !!existingFeedback;
+
+        if (hasSubmitted) {
+          // Read-only "Your Review" card
+          const displayRating  = existingFeedback?.rating  ?? feedbackRating;
+          const displayComment = existingFeedback?.comment ?? feedbackComment;
+          return (
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+              <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 flex items-center gap-2">
+                <Star size={15} className="text-amber-400 fill-amber-400" />
+                <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
+                  Your Review
+                </h2>
+              </div>
+              <div className="px-5 py-5 space-y-3">
+                <StarRating value={displayRating} readOnly />
+                {displayComment && (
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed italic">
+                    "{displayComment}"
+                  </p>
+                )}
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                  ✓ Thank you for your feedback!
+                </p>
+              </div>
+            </div>
+          );
+        }
+
+        // Interactive feedback form
+        return (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 flex items-center gap-2">
+              <MessageSquare size={15} className="text-green-600" />
+              <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
+                Rate Your Experience
+              </h2>
+            </div>
+            <div className="px-5 py-5 space-y-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                How satisfied were you with this pickup? Your feedback helps us improve.
+              </p>
+              <div className="flex items-center gap-3">
+                <StarRating
+                  value={feedbackRating}
+                  onChange={setFeedbackRating}
+                />
+                {feedbackRating > 0 && (
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    {['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][feedbackRating]}
+                  </span>
+                )}
+              </div>
+              <textarea
+                value={feedbackComment}
+                onChange={(e) => setFeedbackComment(e.target.value)}
+                rows={3}
+                placeholder="Share your experience (optional)…"
+                className="w-full px-3 py-2.5 text-sm border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 resize-none transition"
+              />
+              <button
+                onClick={handleSubmitFeedback}
+                disabled={submittingFB || feedbackRating === 0}
+                className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl text-sm transition-colors"
+              >
+                {submittingFB ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Submitting…
+                  </>
+                ) : (
+                  <>
+                    <Star size={15} /> Submit Review
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* No-photo placeholder */}
       {(!req.photos || req.photos.length === 0) && (

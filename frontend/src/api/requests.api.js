@@ -89,8 +89,19 @@ export const completeRequest = (id) =>
 
 /**
  * HOME_USER: download the PDF receipt for a completed request.
+ * Fetches the PDF blob, creates a temporary object URL, and triggers
+ * a browser "Save as…" download, then cleans up the temporary anchor.
  * @param {string} id
- * @returns {Promise<Blob>}
+ * @returns {Promise<void>}
  */
-export const downloadReceipt = (id) =>
-  api.get(`/requests/${id}/receipt`, { responseType: 'blob' });
+export const downloadReceipt = async (id) => {
+  const response = await api.get(`/requests/${id}/receipt`, { responseType: 'blob' });
+  const url = URL.createObjectURL(response.data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'ScrapBridge-Receipt.pdf';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};

@@ -1,4 +1,8 @@
 import { Router } from "express";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
 import { verifyToken }  from "../middleware/auth.middleware.js";
 import { requireRole }  from "../middleware/role.middleware.js";
 import { validate }     from "../middleware/validate.middleware.js";
@@ -25,6 +29,13 @@ import {
   completeRequest,
   getAssignedPickups,
 } from "../controllers/request.controller.js";
+
+import prisma            from "../config/prisma.js";
+import { generateReceipt } from "../services/pdf.service.js";
+
+// Resolve __dirname for ES Modules (needed to build absolute receipt path)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
 
 const router = Router();
 
@@ -103,12 +114,78 @@ router.patch("/:id/collect", requireRole("COLLECTOR"), collectRequest);
 // Must come AFTER specific PATCH routes to avoid /:id shadowing them
 router.get("/:id", getRequestById);
 
-// ── Phase 5 placeholder ───────────────────────────────────────────────────────
-// GET /api/requests/:id/receipt — PDF receipt download (implemented in Phase 5)
-router.get("/:id/receipt", (req, res) => {
-  res
-    .status(501)
-    .json({ error: "Receipt generation not yet implemented. Coming in Phase 5." });
-});
+// ── Phase 5: Receipt download (HOME_USER — own request only) ──────────────────
+
+/**
+ * GET /api/requests/:id/receipt
+ * Role: HOME_USER
+ * Downloads the PDF receipt for a completed request.
+ * If the receipt was never generated (requests completed before Task 5.1
+ * was deployed), it is generated on-demand, persisted, then served.
+ * Returns 403 for ownership violations, 404 for non-existent / non-completed
+ * requests.
+ */
+const downloadReceipt = async (req, res) => {
+  try {
+    const request = await prisma.scrapRequest.findUnique({
+      where: { id: req.params.id },
+      include: {
+        user:      true,   // homeUser — for name/phone on receipt
+        collector: true,   // collector — for name on receipt
+      },
+    });
+
+    if (!request) {
+      return res.status(404).json({ error: "Request not found." });
+    }
+
+    // Ownership check
+    if (request.userId !== req.user.id) {
+      return res
+        .status(403)
+        .json({ error: "Access denied. This receipt does not belong to you." });
+    }
+
+    // Must be COMPLETED to have a receipt
+    if (request.status !== "COMPLETED") {
+      return res
+        .status(404)
+        .json({ error: "Receipt is only available for completed requests." });
+    }
+
+    let receiptPath = request.receiptPath;
+    let absolutePath = receiptPath
+      ? path.resolve(__dirname, "../../", receiptPath)
+      : null;
+
+    // ── Lazy generation ───────────────────────────────────────────────────────
+    // If this request was completed before Task 5.1 (no receiptPath stored),
+    // or the file was somehow deleted, regenerate it now.
+    const needsGeneration = !receiptPath || !fs.existsSync(absolutePath);
+
+    if (needsGeneration) {
+      try {
+        receiptPath  = await generateReceipt(request, request.user, request.collector);
+        absolutePath = path.resolve(__dirname, "../../", receiptPath);
+
+        // Persist the new path so future downloads skip generation
+        await prisma.scrapRequest.update({
+          where: { id: request.id },
+          data:  { receiptPath },
+        });
+      } catch (genErr) {
+        console.error("[downloadReceipt] PDF generation failed:", genErr);
+        return res.status(500).json({ error: "Failed to generate receipt PDF." });
+      }
+    }
+
+    return res.download(absolutePath, "ScrapBridge-Receipt.pdf");
+  } catch (err) {
+    console.error("[downloadReceipt]", err);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+};
+
+router.get("/:id/receipt", requireRole("HOME_USER"), downloadReceipt);
 
 export default router;

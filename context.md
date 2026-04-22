@@ -152,7 +152,15 @@ frontend/src/
     └── formatters.js
 
 ## Current Phase
-Phase 5 — PDF Receipt Generation
+Phase 8 — CSV Export — ⬜ Not started
+
+### Phase 7 — Admin Dashboard Enhancements — ✅ Complete
+- Task 7.1 Admin Stats Aggregation Endpoint — ✅ Complete
+- Task 7.2 Admin Dashboard Charts UI — ✅ Complete
+
+### Phase 6 — Rating & Feedback System — ✅ Complete
+- Task 6.1 Feedback Backend (Controller + Routes) — ✅ Complete
+- Task 6.2 Feedback Frontend UI — ✅ Complete
 
 ### Phase 4 — Buyer Module — ✅ Complete
 - Task 4.1 Inventory & Order Controllers + Routes — ✅ Complete
@@ -177,10 +185,10 @@ Phase 5 — PDF Receipt Generation
 | 2 | Core Pickup Request Flow | ✅ Complete |
 | 3 | Email Verification & Password Reset | ✅ Complete |
 | 4 | Buyer Module | ✅ Complete |
-| 5 | PDF Receipt Generation | 🔄 In Progress |
-| 6 | Rating & Feedback System | ⬜ Not started |
-| 7 | Admin Dashboard Enhancements | ⬜ Not started |
-| 8 | CSV Export | ⬜ Not started |
+| 5 | PDF Receipt Generation | ✅ Complete |
+| 6 | Rating & Feedback System | ✅ Complete |
+| 7 | Admin Dashboard Enhancements | ✅ Complete |
+| 8 | CSV Export | 🔄 Next |
 | 9 | Dark Mode & Final Polish | ⬜ Not started |
 
 ## Files Created So Far
@@ -284,6 +292,24 @@ Phase 5 — PDF Receipt Generation
 - [BugFix] frontend/src/pages/admin/InventoryManager.jsx (rewritten: 3-column weight view Total/Reserved/Available; colour-coded cells; badge uses availableKg > 0)
 - [BugFix] frontend/src/pages/admin/AllOrders.jsx (updated: Cancel button for PLACED orders with ConfirmModal; imports cancelOrder)
 - [BugFix] frontend/src/components/common/StatusBadge.jsx (updated: added CANCELLED style)
+- backend/src/services/pdf.service.js (new: generateReceipt using pdfkit — branded A4 PDF with header banner, receipt ID, date, customer/collector sections, materials table, total price, footer)
+- backend/src/controllers/request.controller.js (updated: completeRequest now fetches homeUser + collector, calls generateReceipt, persists receiptPath via Prisma update, and updates notification message to mention receipt ready)
+- backend/src/routes/request.routes.js (updated: replaced 501 placeholder with real downloadReceipt inline controller — enforces HOME_USER ownership (403), receiptPath presence (404), file-on-disk check (404), then res.download(); added static prisma/fs/path imports)
+- backend/src/controllers/feedback.controller.js (new: submitFeedback — verifies request ownership + COMPLETED status, creates Feedback record, catches P2002 unique constraint → 409; getAllFeedback — returns all records with user name + request info, computes averageRating via Prisma aggregate)
+- backend/src/routes/feedback.routes.js (new: POST / HOME_USER → submitFeedback; GET / ADMIN → getAllFeedback)
+- backend/server.js (updated: added feedbackRoutes import + mounted at /api/feedback)
+- frontend/src/api/feedback.api.js (new: submitFeedback → POST /api/feedback; getAllFeedback → GET /api/feedback)
+- frontend/src/pages/homeuser/RequestDetail.jsx (updated: added feedback form for COMPLETED requests — interactive StarRating + textarea + Submit Review button; shows read-only "Your Review" card after submission or if feedback already exists on the request; 409 toast for duplicate submissions)
+- frontend/src/pages/admin/FeedbackView.jsx (new: Average Rating + Total Reviews stat cards; feedback table with User Name, Request ID, coloured StarRating, Comment, Date; uses useFetch + getAllFeedback)
+- frontend/src/App.jsx (updated: added /admin/feedback route wired to FeedbackView)
+- backend/src/controllers/admin.controller.js (new: getDashboardStats — 8 aggregation queries: usersByRole groupBy, activeRequests count, pendingOrders count, totalRevenue aggregate, weeklyRequestCounts $queryRaw, materialDistribution $queryRaw, monthlyRevenue $queryRaw, averageRating aggregate; all BigInt values coerced to Number for JSON safety)
+- backend/src/routes/admin.routes.js (new: GET /stats → [verifyToken, requireRole("ADMIN"), getDashboardStats]; Phase 8 export routes to be added here)
+- backend/server.js (updated: added adminRoutes import + mounted at /api/admin)
+- frontend/src/api/admin.api.js (new: getDashboardStats → GET /api/admin/stats; exportRequestsCSV + exportInventoryCSV stubs for Phase 8)
+- frontend/src/components/charts/BarChart.jsx (new: Chart.js Bar wrapper)
+- frontend/src/components/charts/DoughnutChart.jsx (new: Chart.js Doughnut wrapper)
+- frontend/src/components/charts/LineChart.jsx (new: Chart.js Line wrapper)
+- frontend/src/pages/admin/AdminDashboard.jsx (replaced: full Task 7.2 implementation)
 
 ## Task Completion Log
 (Append a short entry after each task)
@@ -306,7 +332,14 @@ Phase 5 — PDF Receipt Generation
 - [Task 4.1] Inventory and Order backend APIs implemented. Created: inventory.controller.js (getInventory with materialType/minWeight/maxPrice query filters + include source request info; getAllInventory for admin with orders count), order.controller.js (placeOrder uses prisma.$transaction to atomically create order + flip inventory.available=false + notify all admins; getMyOrders for buyer; getAllOrders for admin; confirmOrder + deliverOrder each update status and send buyer notification). Created: inventory.routes.js, order.routes.js (all routes role-protected with verifyToken + requireRole). server.js updated to mount /api/inventory and /api/orders.
 - [Task 4.2] Buyer and Admin frontend pages implemented. Created: inventory.api.js (getInventory + getAllInventory), orders.api.js (placeOrder, getMyOrders, getAllOrders, confirmOrder, deliverOrder). BrowseInventory.jsx: filter bar (material type dropdown + min weight + max price), 3-col colour-coded card grid, inline order modal with quantity input, live total price preview, validation, and post-order refetch. OrderHistory.jsx: buyer's orders table with StatusBadge, formatWeight/formatCurrency. BuyerDashboard.jsx (replaced stub): 3 stat cards (Total Orders, Active Orders, Total Spent from DELIVERED), inventory highlights top-3 mini-cards with Browse All link, recent 5 orders table. AllOrders.jsx (admin): all orders table with per-row Confirm (PLACED) and Mark Delivered (CONFIRMED) action buttons with spinner feedback and toast messages. InventoryManager.jsx (admin): full inventory table with material type + availability toggle filters, Yes/No availability badge, total value column. App.jsx updated to add /buyer/inventory, /buyer/orders, /admin/orders, /admin/inventory routes. Phase 4 complete.
 - [Bug Fix] Inventory reservation model implemented. Root cause: placeOrder was blindly flipping available=false on the whole inventory item, causing overselling and phantom stock disappearance. Fix: renamed Inventory.weightKg → totalKg, added Inventory.reservedKg @default(0), added CANCELLED to OrderStatus enum. New behaviour — placeOrder atomically increments reservedKg by quantityKg and checks availableKg (= totalKg − reservedKg) > 0 before proceeding. confirmOrder decrements both totalKg and reservedKg (sale finalised). cancelOrder decrements only reservedKg (stock released). deliverOrder is inventory-neutral. Inventory is hidden from buyers only when availableKg reaches 0. Admin sees all three columns (Total / Reserved / Available) in InventoryManager with colour-coded cells. Buyers only see availableKg. Requires migration: npx prisma migrate dev --name inventory_reservation_model.
-
+- [Task 5.1] PDF Receipt Generation implemented. Created: backend/src/services/pdf.service.js (generateReceipt — A4 PDF with green banner header, receipt ID + date issued, customer name/phone/address, collector name, scheduled date, materials table with alternating row colours, total price highlight bar, footer message; saves to backend/receipts/receipt-{id}.pdf; wraps stream finish/error in a Promise). Updated: request.controller.js (completeRequest — after inventory creation, fetches homeUser + collector in parallel, calls generateReceipt, persists receiptPath on the ScrapRequest row, non-fatal error catch so completion is never blocked by PDF failure, updated notification to mention receipt ready). Updated: request.routes.js (replaced 501 stub with downloadReceipt inline controller — find request, ownership 403, receiptPath null 404, file-on-disk 404, res.download; added static imports for prisma/fs/path at top; GET /:id/receipt wired with verifyToken+requireRole("HOME_USER")). No schema migration needed — receiptPath String? was already in schema.
+- [Task 5.2] Receipt download button wired up in HomeUser RequestDetail. Updated: frontend/src/api/requests.api.js (downloadReceipt rewritten as async function — fetches blob, creates object URL, appends temporary <a> element, programmatically clicks it, then removes it and revokes URL). Updated: frontend/src/pages/homeuser/RequestDetail.jsx (imported downloadReceipt; added downloading state; added handleDownload async handler with try/catch/finally; completion banner now conditionally renders active green "Download PDF Receipt" button when req.receiptPath is set, with inline spinner loading state and error toast on failure; falls back to disabled button if receiptPath is null). Phase 5 complete.
+- [Bug Fix] Photo previews not showing: fixed broken URL construction across all request/pickup detail pages. Root cause was a mix of redundant path prefixes and missing base URLs.
+- [Optimization] Improved photo loading: updated `vite.config.js` to proxy `/uploads` to the backend and switched all photo URLs in frontend components to use clean relative paths, removing the hardcoded `http://localhost:5000`.
+- [Task 6.1] Feedback backend implemented. Created: feedback.controller.js (submitFeedback: validates body, verifies request exists + belongs to user + status=COMPLETED, creates Feedback; catches Prisma P2002 unique constraint violation → 409 duplicate guard; getAllFeedback: fetches all records with user name + request info, aggregates averageRating + totalCount via prisma.feedback.aggregate). Created: feedback.routes.js (POST / HOME_USER, GET / ADMIN — both verifyToken + requireRole protected). Updated: server.js (feedbackRoutes imported + mounted at /api/feedback).
+- [Task 6.2] Feedback frontend UI implemented. Created: frontend/src/api/feedback.api.js (submitFeedback, getAllFeedback). Updated: frontend/src/pages/homeuser/RequestDetail.jsx — COMPLETED requests now show interactive StarRating + comment textarea + "Submit Review" button; on success transitions to read-only "Your Review" card showing submitted rating + comment; 409 responses shown as toast (duplicate blocked). Created: frontend/src/pages/admin/FeedbackView.jsx — Average Rating stat card + Total Reviews card + feedback table (User Name, Request ID, coloured StarRating, Comment, Date); uses useFetch. Updated: frontend/src/App.jsx (added /admin/feedback route). Phase 6 complete.
+- [Task 7.1] Admin stats aggregation endpoint implemented. Created: backend/src/controllers/admin.controller.js (getDashboardStats — runs 8 Prisma queries: groupBy role for user counts, count active requests, count pending orders, aggregate sum for total revenue, $queryRaw for weekly request counts last 30 days, $queryRaw for material distribution by type, $queryRaw for monthly revenue last 6 months, aggregate avg for feedback rating; all BigInt values coerced to Number). Created: backend/src/routes/admin.routes.js (GET /stats with verifyToken + requireRole("ADMIN")). Updated: backend/server.js (adminRoutes imported + mounted at /api/admin).
+- [Task 7.2] Admin Dashboard Charts UI implemented. Created: frontend/src/api/admin.api.js (getDashboardStats + Phase 8 CSV export stubs). Created: BarChart.jsx (Bar wrapper, brand green, no legend, simple gridlines), DoughnutChart.jsx (Doughnut with custom centerLabelPlugin, legend bottom, brand palette), LineChart.jsx (Line wrapper, tension 0.4, fill, ready for revenue chart). Replaced: AdminDashboard.jsx — now fetches getDashboardStats() + getAllRequests() on mount; 4 live stat cards (Total Tonnage from materialDistribution sum, Active Requests, Total Revenue ₹, System Alerts/pendingOrders); tab switcher with local state (Overview/Real-time Feed/Regional View); Overview tab: BarChart weekly volume (W1-W4 from weeklyRequestCounts) + DoughnutChart material distribution (with center total tonnage label); Urgent Actions panel (PENDING requests list, click → /admin/requests/:id); Recent Ledger Entries panel (last 5 COMPLETED with live ping dot, relative time, revenue). Phase 7 complete.
 
 ## Deviations from Original Plan
 
@@ -326,8 +359,8 @@ We initially attempted to use Prisma v7 which requires a runtime driver adapter 
 - All controllers updated to use the three-column model. Migration: `inventory_reservation_model`.
 
 ## Notes for Next Session
-- Phases 1, 2, 3, and 4 are fully complete.
-- **Phase 5 Next:** PDF Receipt Generation — implement pdfkit receipt generation endpoint (GET /api/requests/:id/receipt), enable the disabled receipt button in homeuser/RequestDetail.jsx.
+- Phases 1–7 are fully complete. Phase 8 is next.
+- **Phase 8 — CSV Export:** Add GET /api/admin/export/requests and GET /api/admin/export/inventory backend routes using csv.service.js (json2csv). The frontend stubs (exportRequestsCSV, exportInventoryCSV) already exist in admin.api.js. Wire them up in a new ExportTools.jsx page.
 - **Phase 3 — Email Testing Blocked:** The VerifyEmail and ForgotPassword/ResetPassword flows are fully implemented (backend + frontend) but **cannot be tested yet** because `EMAIL_USER` and `EMAIL_PASS` have not been set in `backend/.env`.
   - To unblock: create a Gmail account for the app → enable 2-Step Verification → generate an App Password (Google → Security → App Passwords) → add to `backend/.env` as `EMAIL_USER` and `EMAIL_PASS`.
   - Once configured, test: Register new user → verify email link → login; and Forgot Password → reset link → reset password → login with new password.

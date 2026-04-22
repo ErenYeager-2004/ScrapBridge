@@ -1,5 +1,6 @@
 import prisma from "../config/prisma.js";
 import { createNotification } from "../services/notification.service.js";
+import { generateReceipt } from "../services/pdf.service.js";
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -350,9 +351,8 @@ export const collectRequest = async (req, res) => {
 /**
  * PATCH /api/requests/:id/complete
  * Role: ADMIN
- * Marks request COMPLETED and auto-creates Inventory records per item.
- *
- * TODO (Phase 5): Generate a PDF receipt and store the path in request.receiptPath.
+ * Marks request COMPLETED, auto-creates Inventory records per item,
+ * generates a PDF receipt (Phase 5), and notifies the home user.
  */
 export const completeRequest = async (req, res) => {
   try {
@@ -392,7 +392,6 @@ export const completeRequest = async (req, res) => {
     // NOTE: Inventory has @unique on requestId (one row per ScrapRequest).
     // We create a single aggregated Inventory record using the first item's
     // materialType and the summed weight of all items.
-    // TODO (Phase 5): Re-evaluate multi-item inventory if the schema is updated.
     if (items.length > 0) {
       const primaryItem = items[0];
       const pricePerKg =
@@ -410,12 +409,36 @@ export const completeRequest = async (req, res) => {
       });
     }
 
+    // ── Phase 5: PDF Receipt Generation ──────────────────────────────────────
+    // Fetch the home user and assigned collector for the receipt
+    const [homeUser, collector] = await Promise.all([
+      prisma.user.findUnique({ where: { id: existing.userId } }),
+      existing.collectorId
+        ? prisma.user.findUnique({ where: { id: existing.collectorId } })
+        : Promise.resolve(null),
+    ]);
+
+    let receiptPath = null;
+    try {
+      receiptPath = await generateReceipt(request, homeUser, collector);
+
+      // Persist the receipt path on the ScrapRequest row
+      await prisma.scrapRequest.update({
+        where: { id: request.id },
+        data: { receiptPath },
+      });
+    } catch (pdfErr) {
+      // Non-fatal: log but do not fail the completion
+      console.error("[completeRequest] PDF generation failed:", pdfErr);
+    }
+    // ── End PDF Receipt Generation ────────────────────────────────────────────
+
     await createNotification(
       request.userId,
-      `Your scrap request #${request.id.slice(0, 8)} has been completed. Thank you!`
+      `Your scrap request #${request.id.slice(0, 8)} has been completed. Your receipt is ready to download!`
     );
 
-    return res.status(200).json({ request });
+    return res.status(200).json({ request: { ...request, receiptPath } });
   } catch (err) {
     console.error("[completeRequest]", err);
     return res.status(500).json({ error: "Internal server error." });

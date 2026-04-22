@@ -25,6 +25,7 @@ import AllRequests from './pages/admin/AllRequests';
 import AdminRequestDetail from './pages/admin/RequestDetail';
 import AllOrders from './pages/admin/AllOrders';
 import InventoryManager from './pages/admin/InventoryManager';
+import FeedbackView from './pages/admin/FeedbackView';
 
 // Home User pages
 import UserDashboard from './pages/homeuser/UserDashboard';
@@ -77,6 +78,7 @@ export default function App() {
                   <Route path="requests/:id" element={<AdminRequestDetail />} />
                   <Route path="orders" element={<AllOrders />} />
                   <Route path="inventory" element={<InventoryManager />} />
+                  <Route path="feedback" element={<FeedbackView />} />
                 </Route>
               </Route>
             </Route>
