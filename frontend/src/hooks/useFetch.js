@@ -12,20 +12,42 @@ export function useFetch(fetcherFn) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetch = useCallback(() => {
-    setLoading(true);
-    setError(null);
+  const handleFetch = useCallback((ignoreFlag = { current: false }) => {
     fetcherFn()
-      .then((res) => setData(res.data))
-      .catch((err) => setError(err))
-      .finally(() => setLoading(false));
+      .then((res) => {
+        if (!ignoreFlag.current) {
+          setData(res.data);
+          setError(null);
+        }
+      })
+      .catch((err) => {
+        if (!ignoreFlag.current) {
+          setError(err);
+        }
+      })
+      .finally(() => {
+        if (!ignoreFlag.current) {
+          setLoading(false);
+        }
+      });
   }, [fetcherFn]);
 
   useEffect(() => {
-    fetch();
-  }, [fetch]);
+    const ignoreFlag = { current: false };
+    handleFetch(ignoreFlag);
 
-  return { data, loading, error, refetch: fetch };
+    return () => {
+      ignoreFlag.current = true;
+    };
+  }, [handleFetch]);
+
+  const refetch = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    handleFetch();
+  }, [handleFetch]);
+
+  return { data, loading, error, refetch };
 }
 
 
