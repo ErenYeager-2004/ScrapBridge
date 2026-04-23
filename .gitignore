@@ -29,5 +29,8 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Temp files
+# Project docs (local only)
+context.md
+GUIDE.md
 mail.md
+ScrapBridge_Implementation_Plan.docx

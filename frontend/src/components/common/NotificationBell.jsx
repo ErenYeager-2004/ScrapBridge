@@ -13,8 +13,25 @@ export default function NotificationBell() {
 
   // Fetch on mount
   useEffect(() => {
-    fetchNotifications();
+    async function loadNotifications() {
+      try {
+        const res = await api.get('/notifications/my');
+        setNotifications(res.data.notifications ?? []);
+      } catch {
+        // silently fail — user may not be logged in yet
+      }
+    }
+    loadNotifications();
   }, []);
+
+  async function markAllRead() {
+    try {
+      await api.patch('/notifications/read-all');
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch {
+      // ignore
+    }
+  }
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -26,24 +43,6 @@ export default function NotificationBell() {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
-
-  async function fetchNotifications() {
-    try {
-      const res = await api.get('/notifications/my');
-      setNotifications(res.data.notifications ?? []);
-    } catch {
-      // silently fail — user may not be logged in yet
-    }
-  }
-
-  async function markAllRead() {
-    try {
-      await api.patch('/notifications/read-all');
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    } catch {
-      // ignore
-    }
-  }
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
