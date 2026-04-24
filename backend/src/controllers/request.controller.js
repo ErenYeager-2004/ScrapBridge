@@ -2,7 +2,7 @@ import prisma from "../config/prisma.js";
 import { createNotification } from "../services/notification.service.js";
 import { generateReceipt } from "../services/pdf.service.js";
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+
 
 /**
  * Fetch all users with role ADMIN and create a notification for each.
@@ -13,7 +13,7 @@ const notifyAdmins = async (message) => {
   await Promise.all(admins.map((admin) => createNotification(admin.id, message)));
 };
 
-// ── a. createRequest ───────────────────────────────────────────────────────────
+
 
 /**
  * POST /api/requests
@@ -59,7 +59,7 @@ export const createRequest = async (req, res) => {
   }
 };
 
-// ── b. getMyRequests ───────────────────────────────────────────────────────────
+
 
 /**
  * GET /api/requests/my
@@ -83,7 +83,7 @@ export const getMyRequests = async (req, res) => {
   }
 };
 
-// ── c. getAllRequests ──────────────────────────────────────────────────────────
+
 
 /**
  * GET /api/requests
@@ -116,7 +116,7 @@ export const getAllRequests = async (req, res) => {
   }
 };
 
-// ── d. getRequestById ──────────────────────────────────────────────────────────
+
 
 /**
  * GET /api/requests/:id
@@ -151,7 +151,7 @@ export const getRequestById = async (req, res) => {
   }
 };
 
-// ── e. quoteRequest ────────────────────────────────────────────────────────────
+
 
 /**
  * PATCH /api/requests/:id/quote
@@ -184,7 +184,7 @@ export const quoteRequest = async (req, res) => {
   }
 };
 
-// ── f. rejectRequest ───────────────────────────────────────────────────────────
+
 
 /**
  * PATCH /api/requests/:id/reject
@@ -215,7 +215,7 @@ export const rejectRequest = async (req, res) => {
   }
 };
 
-// ── g. respondToQuote ─────────────────────────────────────────────────────────
+
 
 /**
  * PATCH /api/requests/:id/respond
@@ -265,7 +265,7 @@ export const respondToQuote = async (req, res) => {
   }
 };
 
-// ── h. scheduleRequest ────────────────────────────────────────────────────────
+
 
 /**
  * PATCH /api/requests/:id/schedule
@@ -309,7 +309,7 @@ export const scheduleRequest = async (req, res) => {
   }
 };
 
-// ── i. collectRequest ─────────────────────────────────────────────────────────
+
 
 /**
  * PATCH /api/requests/:id/collect
@@ -346,13 +346,13 @@ export const collectRequest = async (req, res) => {
   }
 };
 
-// ── j. completeRequest ────────────────────────────────────────────────────────
+
 
 /**
  * PATCH /api/requests/:id/complete
  * Role: ADMIN
  * Marks request COMPLETED, auto-creates Inventory records per item,
- * generates a PDF receipt (Phase 5), and notifies the home user.
+ * generates a PDF receipt, and notifies the home user.
  */
 export const completeRequest = async (req, res) => {
   try {
@@ -409,7 +409,7 @@ export const completeRequest = async (req, res) => {
       });
     }
 
-    // ── Phase 5: PDF Receipt Generation ──────────────────────────────────────
+    // PDF Receipt Generation
     // Fetch the home user and assigned collector for the receipt
     const [homeUser, collector] = await Promise.all([
       prisma.user.findUnique({ where: { id: existing.userId } }),
@@ -431,7 +431,7 @@ export const completeRequest = async (req, res) => {
       // Non-fatal: log but do not fail the completion
       console.error("[completeRequest] PDF generation failed:", pdfErr);
     }
-    // ── End PDF Receipt Generation ────────────────────────────────────────────
+
 
     await createNotification(
       request.userId,
@@ -445,7 +445,7 @@ export const completeRequest = async (req, res) => {
   }
 };
 
-// ── k. getAssignedPickups ─────────────────────────────────────────────────────
+
 
 /**
  * GET /api/requests/assigned
@@ -471,7 +471,7 @@ export const getAssignedPickups = async (req, res) => {
   }
 };
 
-// ── l. Notification Helpers ───────────────────────────────────────────────────
+
 
 /**
  * GET /api/notifications/my

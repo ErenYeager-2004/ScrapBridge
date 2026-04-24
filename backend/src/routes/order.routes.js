@@ -12,14 +12,14 @@ import {
 
 const router = Router();
 
-// POST /api/orders             — place an order (BUYER)
+// POST /api/orders — place an order (BUYER)
 router.post("/", verifyToken, requireRole("BUYER"), placeOrder);
 
-// GET  /api/orders/my          — buyer's own orders (BUYER)
+// GET  /api/orders/my — buyer's own orders (BUYER)
 // NOTE: /my must be declared BEFORE /:id routes to avoid param shadowing
 router.get("/my", verifyToken, requireRole("BUYER"), getMyOrders);
 
-// GET  /api/orders             — all orders (ADMIN)
+// GET  /api/orders — all orders (ADMIN)
 router.get("/", verifyToken, requireRole("ADMIN"), getAllOrders);
 
 // PATCH /api/orders/:id/confirm — confirm an order (ADMIN)

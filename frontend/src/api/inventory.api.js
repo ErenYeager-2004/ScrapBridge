@@ -1,18 +1,18 @@
 /**
- * inventory.api.js — API functions for Inventory endpoints.
- * All calls use the shared Axios instance (auto-injects JWT).
+ * API functions for Inventory management.
+ * All calls use the shared Axios instance with automatic JWT injection.
  */
 import api from './axios';
 
 /**
- * Get available inventory items (BUYER / ADMIN).
- * @param {object} filters — optional: { materialType, minWeight, maxPrice }
+ * Fetches available inventory items.
+ * @param {object} filters - { materialType, minWeight, maxPrice }
  */
 export const getInventory = (filters = {}) =>
   api.get('/inventory', { params: filters });
 
 /**
- * ADMIN: Get ALL inventory records regardless of availability.
+ * Fetches all inventory records, including unavailable ones (Admin only).
  */
 export const getAllInventory = () =>
   api.get('/inventory/all');

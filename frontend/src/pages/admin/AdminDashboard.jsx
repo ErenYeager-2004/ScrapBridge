@@ -1,7 +1,4 @@
 /**
- * AdminDashboard.jsx — Task 7.2
- *
- * Full implementation with:
  *  • Live stat cards from GET /api/admin/stats
  *  • 3 tabs: Overview | Real-time Feed | Regional View
  *  • Overview: BarChart (request volume) + DoughnutChart (material distribution)
@@ -31,7 +28,7 @@ import BarChart from '../../components/charts/BarChart';
 import DoughnutChart from '../../components/charts/DoughnutChart';
 import { formatDate, formatCurrency, getRelativeTime } from '../../utils/formatters';
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// Utility functions for data formatting and chart preparation
 
 /**
  * Map weeklyRequestCounts ({ week: "2026-16", count: n }[]) to simple W1-W4 labels.
@@ -58,7 +55,7 @@ function formatMaterialLabel(type = '') {
     .join(' ');
 }
 
-// ── Skeleton ────────────────────────────────────────────────────────────────────
+// UI Components for the Dashboard
 function Skeleton({ className = '' }) {
   return (
     <div
@@ -67,7 +64,7 @@ function Skeleton({ className = '' }) {
   );
 }
 
-// ── Stat Card ────────────────────────────────────────────────────────────────────
+// Single stat display card
 function StatCard({ icon: Icon, label, value, colorClass, loading }) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
@@ -91,7 +88,7 @@ function StatCard({ icon: Icon, label, value, colorClass, loading }) {
   );
 }
 
-// ── Chart Panel wrapper ─────────────────────────────────────────────────────────
+// Wrapper for chart sections with title and loading state
 function ChartPanel({ title, children, loading, className = '' }) {
   return (
     <div className={`bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 flex flex-col ${className}`}>
@@ -105,7 +102,7 @@ function ChartPanel({ title, children, loading, className = '' }) {
   );
 }
 
-// ── Tab button ──────────────────────────────────────────────────────────────────
+// Tab navigation button component
 function TabButton({ active, onClick, icon: Icon, label }) {
   return (
     <button
@@ -122,7 +119,7 @@ function TabButton({ active, onClick, icon: Icon, label }) {
   );
 }
 
-// ── Placeholder panel ────────────────────────────────────────────────────────────
+// Generic placeholder for empty or upcoming features
 function PlaceholderPanel({ icon: Icon, title, description }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center text-gray-400 dark:text-gray-600">
@@ -135,20 +132,22 @@ function PlaceholderPanel({ icon: Icon, title, description }) {
   );
 }
 
-// ══ Main Component ═══════════════════════════════════════════════════════════════
+/**
+ * Main AdminDashboard Component
+ */
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
 
-  // ── Fetch admin stats ─────────────────────────────────────────────────────────
+  // Fetch dashboard statistics
   const { data: statsData, loading: statsLoading } = useFetch(
     () => getDashboardStats(),
     []
   );
   const stats = statsData ?? {};
 
-  // ── Fetch all requests (for bottom panels) ────────────────────────────────────
+  // Fetch recent requests for activity panels
   const { data: reqData, loading: reqLoading } = useFetch(
     () => getAllRequests(),
     []
@@ -157,7 +156,7 @@ export default function AdminDashboard() {
 
   const panelLoading = reqLoading;
 
-  // ── Stat card values ──────────────────────────────────────────────────────────
+  // Calculated stat values for display
 
   // Total Tonnage = sum of all weights in the Inventory (created from completed requests)
   const totalTonnage = (stats.materialDistribution ?? []).reduce(
@@ -173,13 +172,13 @@ export default function AdminDashboard() {
   const totalRevenueVal   = stats.totalRevenue ?? 0;
   const systemAlertsVal   = stats.pendingOrdersCount ?? 0;
 
-  // ── Weekly chart data ─────────────────────────────────────────────────────────
+  // Prepare chart datasets
   const { labels: weekLabels, counts: weekCounts } = buildWeeklyChartData(
     stats.weeklyRequestCounts
   );
   const barDatasets = [{ data: weekCounts }];
 
-  // ── Material distribution chart data ─────────────────────────────────────────
+  // Material distribution data preparation
   const matDist = stats.materialDistribution ?? [];
   const doughnutLabels   = matDist.map((m) => formatMaterialLabel(m.materialType));
   const doughnutDatasets = [{ data: matDist.map((m) => m.totalWeight) }];
@@ -188,7 +187,7 @@ export default function AdminDashboard() {
     ? `${(totalMaterialKg / 1000).toFixed(1)} T`
     : '0 kg';
 
-  // ── Bottom panels ─────────────────────────────────────────────────────────────
+  // Filter requests for the action panels
   const pendingRequests = allRequests
     .filter((r) => r.status === 'PENDING')
     .slice(0, 6);
@@ -198,11 +197,11 @@ export default function AdminDashboard() {
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
     .slice(0, 5);
 
-  // ── Render ────────────────────────────────────────────────────────────────────
+
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
 
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      {/* Dashboard Header and Tab Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -235,7 +234,7 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ── Stat cards — always visible ────────────────────────────────────── */}
+      {/* Key Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           icon={Weight}
@@ -267,10 +266,10 @@ export default function AdminDashboard() {
         />
       </div>
 
-      {/* ── Tab content ────────────────────────────────────────────────────── */}
+      {/* Tab Panels */}
       {activeTab === 'overview' && (
         <>
-          {/* ── Charts row ───────────────────────────────────────────────── */}
+          {/* Visual Analytics Section */}
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
             {/* Bar chart — 60% (3/5 cols) */}
@@ -313,7 +312,7 @@ export default function AdminDashboard() {
             </ChartPanel>
           </div>
 
-          {/* ── Bottom panels row ─────────────────────────────────────────── */}
+          {/* Actionable Insights Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
             {/* Urgent Actions */}
@@ -463,7 +462,7 @@ export default function AdminDashboard() {
         </>
       )}
 
-      {/* ── Real-time Feed tab — placeholder ─────────────────────────────── */}
+      {/* Real-time Feed Placeholder */}
       {activeTab === 'realtime' && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
           <PlaceholderPanel
@@ -474,7 +473,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ── Regional View tab — placeholder ──────────────────────────────── */}
+      {/* Regional View Placeholder */}
       {activeTab === 'regional' && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
           <PlaceholderPanel

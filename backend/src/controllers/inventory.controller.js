@@ -1,6 +1,6 @@
 import prisma from "../config/prisma.js";
 
-/**
+/*
  * addComputedFields — appends availableKg (Number) to each inventory record.
  * Buyers only ever receive availableKg; admins also receive totalKg + reservedKg.
  *
@@ -20,7 +20,7 @@ function addComputedFields(records, adminView = false) {
 
     if (!adminView) {
       // Strip sensitive reservation fields from buyer responses
-      const { reservedKg: _r, totalKg: _t, ...rest } = base; // eslint-disable-line no-unused-vars
+      const { reservedKg: _r, totalKg: _t, ...rest } = base;
       return { ...rest, availableKg };
     }
 
@@ -30,7 +30,7 @@ function addComputedFields(records, adminView = false) {
 
 // ── getInventory ──────────────────────────────────────────────────────────────
 
-/**
+/*
  * getInventory
  * GET /api/inventory
  * Role: ADMIN | BUYER
@@ -83,7 +83,7 @@ export const getInventory = async (req, res) => {
 
 // ── getAllInventory ───────────────────────────────────────────────────────────
 
-/**
+/*
  * getAllInventory
  * GET /api/inventory/all
  * Role: ADMIN

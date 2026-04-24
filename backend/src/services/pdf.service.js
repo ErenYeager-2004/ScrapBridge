@@ -1,6 +1,5 @@
 /**
  * pdf.service.js
- * Phase 5 — Task 5.1
  * Generates a ScrapBridge pickup receipt PDF using pdfkit.
  */
 
@@ -73,19 +72,19 @@ export const generateReceipt = (request, user, collector) => {
     }
     if (!Array.isArray(items)) items = [];
 
-    // ── PDF Setup ─────────────────────────────────────────────────────────────
+    // PDF Setup
     const doc = new PDFDocument({ margin: 50, size: "A4" });
     const stream = fs.createWriteStream(absolutePath);
 
     doc.pipe(stream);
 
-    // ── Brand colours ─────────────────────────────────────────────────────────
+    // Brand colours
     const GREEN  = "#1A7A4A";
     const DARK   = "#1a1a2e";
     const GRAY   = "#6b7280";
     const LIGHT  = "#f9fafb";
 
-    // ── Header Banner ─────────────────────────────────────────────────────────
+    // Header Banner
     doc
       .rect(0, 0, doc.page.width, 100)
       .fill(GREEN);
@@ -106,10 +105,10 @@ export const generateReceipt = (request, user, collector) => {
       .font("Helvetica-Bold")
       .text("PICKUP RECEIPT", 50, 58, { align: "right" });
 
-    // ── Reset fill colour after banner ────────────────────────────────────────
+    // Reset fill colour after banner
     doc.fillColor(DARK);
 
-    // ── Receipt Meta ──────────────────────────────────────────────────────────
+    // Receipt Meta
     const metaTop = 120;
 
     doc
@@ -130,7 +129,7 @@ export const generateReceipt = (request, user, collector) => {
       .text(request.id, 60, metaTop + 24, { width: 220, ellipsis: true })
       .text(formatDate(request.updatedAt), 300, metaTop + 24);
 
-    // ── Section helper ────────────────────────────────────────────────────────
+    // Section helper
     let y = metaTop + 80;
 
     const sectionTitle = (title) => {
@@ -164,20 +163,20 @@ export const generateReceipt = (request, user, collector) => {
       y += 18;
     };
 
-    // ── Customer Details ──────────────────────────────────────────────────────
+    // Customer Details
     sectionTitle("CUSTOMER DETAILS");
     row("Name",          user?.name   || "N/A");
     row("Phone",         user?.phone  || "N/A");
     row("Pickup Address", request.pickupAddress || "N/A");
     y += 6;
 
-    // ── Collector Details ─────────────────────────────────────────────────────
+    // Collector Details
     sectionTitle("COLLECTOR DETAILS");
     row("Collector Name", collector?.name || "N/A");
     row("Scheduled Date", formatDate(request.scheduledDate));
     y += 6;
 
-    // ── Materials Table ───────────────────────────────────────────────────────
+    // Materials Table
     sectionTitle("MATERIALS");
 
     // Table header
@@ -220,7 +219,7 @@ export const generateReceipt = (request, user, collector) => {
 
     y += 10;
 
-    // ── Total Price ───────────────────────────────────────────────────────────
+    // Total Price
     doc
       .rect(40, y, doc.page.width - 80, 36)
       .fill(GREEN);
@@ -237,7 +236,7 @@ export const generateReceipt = (request, user, collector) => {
 
     y += 50;
 
-    // ── Footer ────────────────────────────────────────────────────────────────
+    // Footer
     doc
       .moveTo(40, y)
       .lineTo(doc.page.width - 40, y)
@@ -269,7 +268,7 @@ export const generateReceipt = (request, user, collector) => {
         { align: "center", width: doc.page.width - 80 }
       );
 
-    // ── Finalise ──────────────────────────────────────────────────────────────
+    // Finalise
     doc.end();
 
     stream.on("finish", () => resolve(relativePath));

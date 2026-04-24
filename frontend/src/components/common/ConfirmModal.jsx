@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X } from 'lucide-react';
 
 /**
@@ -14,8 +14,12 @@ import { X } from 'lucide-react';
  *  inputLabel      (string) — label above the textarea
  *  inputPlaceholder(string) — placeholder text for textarea
  */
-export default function ConfirmModal({
-  isOpen,
+export default function ConfirmModal(props) {
+  if (!props.isOpen) return null;
+  return <ConfirmModalContent {...props} />;
+}
+
+function ConfirmModalContent({
   title = 'Are you sure?',
   message,
   onConfirm,
@@ -25,13 +29,6 @@ export default function ConfirmModal({
   inputPlaceholder = '',
 }) {
   const [inputValue, setInputValue] = useState('');
-
-  // Reset input every time modal opens
-  useEffect(() => {
-    if (isOpen) setInputValue('');
-  }, [isOpen]);
-
-  if (!isOpen) return null;
 
   const handleConfirm = () => {
     onConfirm(showInput ? inputValue : undefined);

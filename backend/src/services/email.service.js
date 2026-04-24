@@ -1,10 +1,10 @@
 import transporter from "../config/nodemailer.js";
 
-// ── Shared helpers ────────────────────────────────────────────────────────────
+// Shared helpers
 
 const FROM_ADDRESS = `"ScrapBridge" <${process.env.EMAIL_USER}>`;
 
-// ── sendVerificationEmail ─────────────────────────────────────────────────────
+
 
 /**
  * Send an account-verification email to a newly registered user.
@@ -66,7 +66,7 @@ export const sendVerificationEmail = async (user, token) => {
   });
 };
 
-// ── sendPasswordResetEmail ────────────────────────────────────────────────────
+
 
 /**
  * Send a password-reset email.
@@ -132,7 +132,7 @@ export const sendPasswordResetEmail = async (user, token) => {
   });
 };
 
-// ── sendPickupNotificationEmail ───────────────────────────────────────────────
+
 
 /**
  * Send a generic pickup notification email to a user.

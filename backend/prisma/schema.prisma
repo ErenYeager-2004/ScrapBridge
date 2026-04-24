@@ -1,6 +1,3 @@
-// ScrapBridge v2.0 — Prisma Schema
-// Task 1.2: Full database schema definition
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,8 +6,6 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
-
-// ─── Enums ───────────────────────────────────────────────────────────────────
 
 enum Role {
   HOME_USER
@@ -47,8 +42,6 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
 }
-
-// ─── Models ──────────────────────────────────────────────────────────────────
 
 model User {
   id                 String        @id @default(uuid())

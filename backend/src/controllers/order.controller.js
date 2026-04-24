@@ -1,7 +1,7 @@
 import prisma from "../config/prisma.js";
 import { createNotification } from "../services/notification.service.js";
 
-// ── placeOrder ────────────────────────────────────────────────────────────────
+// placeOrder 
 
 /**
  * POST /api/orders
@@ -108,7 +108,7 @@ export const placeOrder = async (req, res) => {
   }
 };
 
-// ── getMyOrders ───────────────────────────────────────────────────────────────
+// getMyOrders 
 
 /**
  * GET /api/orders/my
@@ -143,7 +143,7 @@ export const getMyOrders = async (req, res) => {
   }
 };
 
-// ── getAllOrders ──────────────────────────────────────────────────────────────
+//  getAllOrders 
 
 /**
  * GET /api/orders
@@ -179,7 +179,7 @@ export const getAllOrders = async (req, res) => {
   }
 };
 
-// ── confirmOrder ──────────────────────────────────────────────────────────────
+//  confirmOrder 
 
 /**
  * PATCH /api/orders/:id/confirm
@@ -250,7 +250,7 @@ export const confirmOrder = async (req, res) => {
   }
 };
 
-// ── deliverOrder ──────────────────────────────────────────────────────────────
+//  deliverOrder 
 
 /**
  * PATCH /api/orders/:id/deliver
@@ -291,7 +291,7 @@ export const deliverOrder = async (req, res) => {
   }
 };
 
-// ── cancelOrder ───────────────────────────────────────────────────────────────
+//  cancelOrder 
 
 /**
  * PATCH /api/orders/:id/cancel

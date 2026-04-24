@@ -68,14 +68,12 @@ export const submitFeedback = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 // getAllFeedback — GET /api/feedback
 // Role: ADMIN
 // Returns all Feedback records with user name + request ID, plus average rating.
-// ─────────────────────────────────────────────────────────────────────────────
 export const getAllFeedback = async (req, res) => {
   try {
-    // ── Fetch all feedback records ────────────────────────────────────────────
+    //  Fetch all feedback records 
     const feedbackList = await prisma.feedback.findMany({
       include: {
         user: {

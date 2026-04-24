@@ -42,7 +42,7 @@ const router = Router();
 // All routes below require a valid JWT
 router.use(verifyToken);
 
-// ── HOME_USER routes ──────────────────────────────────────────────────────────
+// HOME_USER routes--
 
 // Submit a new scrap request (with optional photo uploads, up to 5)
 // upload.array runs before validation so req.files is populated
@@ -67,7 +67,7 @@ router.patch(
   respondToQuote
 );
 
-// ── ADMIN routes ──────────────────────────────────────────────────────────────
+// ADMIN routes --
 
 // List all requests (supports ?status=, ?dateFrom=, ?dateTo=)
 router.get("/", requireRole("ADMIN"), getAllRequests);
@@ -102,7 +102,7 @@ router.patch(
 // Mark request as fully completed and create inventory records
 router.patch("/:id/complete", requireRole("ADMIN"), completeRequest);
 
-// ── COLLECTOR routes ──────────────────────────────────────────────────────────
+// COLLECTOR routes
 
 // Get all pickups assigned to the current collector
 router.get("/assigned", requireRole("COLLECTOR"), getAssignedPickups);
@@ -110,18 +110,16 @@ router.get("/assigned", requireRole("COLLECTOR"), getAssignedPickups);
 // Mark an assigned pickup as collected
 router.patch("/:id/collect", requireRole("COLLECTOR"), collectRequest);
 
-// ── Shared read route (HOME_USER / ADMIN / COLLECTOR) ─────────────────────────
+// Shared read route (HOME_USER / ADMIN / COLLECTOR)
 // Must come AFTER specific PATCH routes to avoid /:id shadowing them
 router.get("/:id", getRequestById);
 
-// ── Phase 5: Receipt download (HOME_USER — own request only) ──────────────────
+// Receipt download (HOME_USER — own request only)
 
 /**
  * GET /api/requests/:id/receipt
  * Role: HOME_USER
  * Downloads the PDF receipt for a completed request.
- * If the receipt was never generated (requests completed before Task 5.1
- * was deployed), it is generated on-demand, persisted, then served.
  * Returns 403 for ownership violations, 404 for non-existent / non-completed
  * requests.
  */
@@ -158,9 +156,7 @@ const downloadReceipt = async (req, res) => {
       ? path.resolve(__dirname, "../../", receiptPath)
       : null;
 
-    // ── Lazy generation ───────────────────────────────────────────────────────
-    // If this request was completed before Task 5.1 (no receiptPath stored),
-    // or the file was somehow deleted, regenerate it now.
+    // Lazy generation
     const needsGeneration = !receiptPath || !fs.existsSync(absolutePath);
 
     if (needsGeneration) {

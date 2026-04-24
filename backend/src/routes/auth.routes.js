@@ -19,7 +19,7 @@ import {
 
 const router = Router();
 
-// ── Rate Limiter ───────────────────────────────────────────────────────────────
+// Rate Limiter
 // Applied to register and login to prevent brute-force attacks.
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -31,7 +31,7 @@ const authLimiter = rateLimit({
   },
 });
 
-// ── Auth Routes ────────────────────────────────────────────────────────────────
+// Auth Routes
 
 // Register a new account (HOME_USER or BUYER)
 router.post("/register", authLimiter, registerValidator, validate, register);
@@ -42,7 +42,7 @@ router.post("/login", authLimiter, loginValidator, validate, login);
 // Get current authenticated user's profile
 router.get("/me", verifyToken, getMe);
 
-// ── Phase 3 — Email Verification & Password Reset ─────────────────────────────
+// Email Verification & Password Reset
 
 // Verify email via token link (GET link in verification email)
 router.get("/verify-email", verifyEmail);

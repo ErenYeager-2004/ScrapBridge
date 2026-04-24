@@ -1,7 +1,6 @@
 import prisma from "../config/prisma.js";
 
 /**
- * createNotification
  * Creates a single Notification record for a given user.
  *
  * @param {string} userId  - The recipient user's UUID.

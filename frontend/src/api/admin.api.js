@@ -1,6 +1,6 @@
 /**
- * admin.api.js — API functions for the Admin module.
- * All calls use the shared Axios instance (auto-injects JWT).
+ * API functions for the Admin module.
+ * All calls use the shared Axios instance with automatic JWT injection.
  */
 import api from './axios';
 
@@ -15,14 +15,14 @@ export const getDashboardStats = () => api.get('/admin/stats');
 
 /**
  * GET /api/admin/export/requests
- * Returns a CSV blob of all scrap requests. (Phase 8)
+ * Returns a CSV blob of all scrap requests.
  */
 export const exportRequestsCSV = () =>
   api.get('/admin/export/requests', { responseType: 'blob' });
 
 /**
  * GET /api/admin/export/inventory
- * Returns a CSV blob of the full inventory. (Phase 8)
+ * Returns a CSV blob of the full inventory.
  */
 export const exportInventoryCSV = () =>
   api.get('/admin/export/inventory', { responseType: 'blob' });

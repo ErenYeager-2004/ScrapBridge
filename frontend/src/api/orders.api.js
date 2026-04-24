@@ -1,45 +1,45 @@
 /**
- * orders.api.js — API functions for BuyerOrder endpoints.
- * All calls use the shared Axios instance (auto-injects JWT).
+ * API functions for Buyer Order management.
+ * All calls use the shared Axios instance with automatic JWT injection.
  */
 import api from './axios';
 
 /**
- * BUYER: Place a new order for an inventory item.
+ * Places a new order for an inventory item.
  * @param {{ inventoryId: string, quantityKg: number }} data
  */
 export const placeOrder = (data) =>
   api.post('/orders', data);
 
 /**
- * BUYER: Get all orders belonging to the logged-in buyer.
+ * Fetches all orders belonging to the authenticated buyer.
  */
 export const getMyOrders = () =>
   api.get('/orders/my');
 
 /**
- * ADMIN: Get all orders across all buyers.
+ * Fetches all orders across the platform (Admin only).
  */
 export const getAllOrders = () =>
   api.get('/orders');
 
 /**
- * ADMIN: Confirm a PLACED order.
- * @param {string} id — order ID
+ * Confirms a pending order (Admin only).
+ * @param {string} id - The order ID
  */
 export const confirmOrder = (id) =>
   api.patch(`/orders/${id}/confirm`);
 
 /**
- * ADMIN: Mark a CONFIRMED order as DELIVERED.
- * @param {string} id — order ID
+ * Marks a confirmed order as delivered (Admin only).
+ * @param {string} id - The order ID
  */
 export const deliverOrder = (id) =>
   api.patch(`/orders/${id}/deliver`);
 
 /**
- * ADMIN: Cancel a PLACED order and release its reserved stock.
- * @param {string} id — order ID
+ * Cancels a placed order and releases reserved stock (Admin only).
+ * @param {string} id - The order ID
  */
 export const cancelOrder = (id) =>
   api.patch(`/orders/${id}/cancel`);

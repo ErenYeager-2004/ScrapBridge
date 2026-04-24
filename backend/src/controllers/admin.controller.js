@@ -1,44 +1,42 @@
-// backend/src/controllers/admin.controller.js
-// Task 7.1 — Admin Dashboard Stats Aggregation
+
 
 import prisma from "../config/prisma.js";
 import { generateRequestsCSV, generateInventoryCSV } from "../services/csv.service.js";
 
-// ── getDashboardStats ─────────────────────────────────────────────────────────
-// GET /api/admin/stats  [ADMIN only]
-// Returns a single JSON object with all metrics needed by the admin dashboard.
+// getDashboardStats
+// GET /api/admin/stats [ADMIN ONLY]
+// Returns metrics for the admin dashboard.
 export const getDashboardStats = async (req, res) => {
   try {
-    // ── a. Users grouped by role ─────────────────────────────────────────────
+    // Users grouped by role
     const usersByRole = await prisma.user.groupBy({
       by: ["role"],
       _count: { id: true },
     });
-    // Shape: { HOME_USER: n, ADMIN: n, COLLECTOR: n, BUYER: n }
+
     const userCounts = {};
     for (const row of usersByRole) {
       userCounts[row.role] = row._count.id;
     }
 
-    // ── b. Active requests (PENDING | QUOTED | SCHEDULED) ────────────────────
+    // Active requests count
     const activeRequestsCount = await prisma.scrapRequest.count({
       where: { status: { in: ["PENDING", "QUOTED", "SCHEDULED"] } },
     });
 
-    // ── c. Pending buyer orders (status = PLACED) ────────────────────────────
+    // Pending buyer orders count
     const pendingOrdersCount = await prisma.buyerOrder.count({
       where: { status: "PLACED" },
     });
 
-    // ── d. Total revenue (sum of adminPrice where status = COMPLETED) ────────
+    // Total revenue calculation
     const revenueAggregate = await prisma.scrapRequest.aggregate({
       _sum: { adminPrice: true },
       where: { status: "COMPLETED" },
     });
     const totalRevenue = Number(revenueAggregate._sum.adminPrice ?? 0);
 
-    // ── e. Weekly request counts — last 30 days ──────────────────────────────
-    // Groups by ISO year-week (e.g. "2026-16").
+    // Weekly request counts (last 30 days)
     const weeklyRequests = await prisma.$queryRaw`
       SELECT
         DATE_FORMAT(createdAt, '%Y-%u') AS week,
@@ -48,13 +46,13 @@ export const getDashboardStats = async (req, res) => {
       GROUP BY week
       ORDER BY week ASC
     `;
-    // BigInt → Number coercion for JSON serialisation
+
     const weeklyRequestCounts = weeklyRequests.map((r) => ({
       week: r.week,
       count: Number(r.count),
     }));
 
-    // ── f. Material distribution (Inventory table, grouped by materialType) ──
+    // Material distribution by type
     const materialDistribution = await prisma.$queryRaw`
       SELECT
         materialType,
@@ -68,7 +66,7 @@ export const getDashboardStats = async (req, res) => {
       totalWeight: Number(r.totalWeight),
     }));
 
-    // ── g. Monthly revenue — last 6 months ───────────────────────────────────
+    // Monthly revenue (last 6 months)
     const monthlyRevenue = await prisma.$queryRaw`
       SELECT
         DATE_FORMAT(createdAt, '%Y-%m') AS month,
@@ -84,7 +82,7 @@ export const getDashboardStats = async (req, res) => {
       revenue: Number(r.revenue ?? 0),
     }));
 
-    // ── h. Average feedback rating ───────────────────────────────────────────
+    // Average feedback rating
     const ratingAggregate = await prisma.feedback.aggregate({
       _avg: { rating: true },
       _count: { id: true },
@@ -94,7 +92,7 @@ export const getDashboardStats = async (req, res) => {
       : null;
     const totalFeedbackCount = ratingAggregate._count.id;
 
-    // ── Combine & respond ────────────────────────────────────────────────────
+    // Respond with combined metrics
     return res.status(200).json({
       userCounts,
       activeRequestsCount,
@@ -112,8 +110,8 @@ export const getDashboardStats = async (req, res) => {
   }
 };
 
-// ── exportRequests ─────────────────────────────────────────────────────────────
-// GET /api/admin/export/requests [ADMIN only]
+// exportRequests
+// GET /api/admin/export/requests [ADMIN ONLY]
 export const exportRequests = async (req, res) => {
   try {
     const csvString = await generateRequestsCSV();
@@ -126,8 +124,8 @@ export const exportRequests = async (req, res) => {
   }
 };
 
-// ── exportInventory ────────────────────────────────────────────────────────────
-// GET /api/admin/export/inventory [ADMIN only]
+// exportInventory
+// GET /api/admin/export/inventory [ADMIN ONLY]
 export const exportInventory = async (req, res) => {
   try {
     const csvString = await generateInventoryCSV();

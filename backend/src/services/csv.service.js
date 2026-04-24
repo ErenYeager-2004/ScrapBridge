@@ -1,6 +1,3 @@
-// backend/src/services/csv.service.js
-// Task 8.1 — CSV Export Service
-
 import { Parser } from "json2csv";
 import prisma from "../config/prisma.js";
 
