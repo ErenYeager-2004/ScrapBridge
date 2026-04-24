@@ -82,6 +82,26 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Statistics Row */}
+      <section className="py-12 border-y border-gray-800/50 bg-gray-900/30">
+        <div className="max-w-5xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-gray-800">
+            <div className="py-4 md:py-0 flex flex-col items-center justify-center">
+              <span className="text-4xl font-extrabold text-white mb-2">1000+</span>
+              <span className="text-sm font-medium text-gray-400 uppercase tracking-wide">Requests Completed</span>
+            </div>
+            <div className="py-4 md:py-0 flex flex-col items-center justify-center">
+              <span className="text-4xl font-extrabold text-white mb-2">4</span>
+              <span className="text-sm font-medium text-gray-400 uppercase tracking-wide">Roles Supported</span>
+            </div>
+            <div className="py-4 md:py-0 flex flex-col items-center justify-center">
+              <span className="text-4xl font-extrabold text-white mb-2">100%</span>
+              <span className="text-sm font-medium text-gray-400 uppercase tracking-wide">Local — No Cloud Required</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* How it works */}
       <section className="py-20 px-6 bg-gray-900/50 border-t border-gray-800/50">
         <div className="max-w-5xl mx-auto">

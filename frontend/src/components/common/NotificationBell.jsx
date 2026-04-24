@@ -84,9 +84,10 @@ export default function NotificationBell() {
           {/* Notification list */}
           <div className="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
             {notifications.length === 0 ? (
-              <p className="px-4 py-6 text-center text-sm text-gray-400">
-                No notifications yet.
-              </p>
+              <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                <Bell size={32} className="text-gray-300 dark:text-gray-600 mb-2" />
+                <p className="text-sm font-medium">No notifications yet.</p>
+              </div>
             ) : (
               notifications.map((n) => (
                 <div

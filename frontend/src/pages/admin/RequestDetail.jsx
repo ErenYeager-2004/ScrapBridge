@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, MapPin, Package, Image as ImageIcon, CheckCircle, XCircle, Clock, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useFetch from '../../hooks/useFetch';
 import { getRequestById, quoteRequest, rejectRequest, completeRequest } from '../../api/requests.api';
-import { getAllRequests } from '../../api/requests.api';
 import StatusBadge from '../../components/common/StatusBadge';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import { formatDate, formatCurrency } from '../../utils/formatters';
@@ -15,7 +14,8 @@ export default function AdminRequestDetail() {
   const navigate = useNavigate();
 
   /* ── fetch request ── */
-  const { data, loading, error, refetch } = useFetch(() => getRequestById(id), [id]);
+  const fetchRequest = useCallback(() => getRequestById(id), [id]);
+  const { data, loading, error, refetch } = useFetch(fetchRequest);
   const request = data?.request ?? null;
 
   /* ── collectors list ── */
@@ -37,13 +37,13 @@ export default function AdminRequestDetail() {
   const [completeModal, setCompleteModal] = useState(false);
 
   /* ── populate form when request loads ── */
-  useEffect(() => {
-    if (request) {
-      setPrice(request.adminPrice ?? '');
-      setCollectorId(request.collectorId ?? '');
-      setNotes(request.adminNotes ?? '');
-    }
-  }, [request]);
+  const [prevRequest, setPrevRequest] = useState(null);
+  if (request && request !== prevRequest) {
+    setPrevRequest(request);
+    setPrice(request.adminPrice ?? '');
+    setCollectorId(request.collectorId ?? '');
+    setNotes(request.adminNotes ?? '');
+  }
 
   /* ── handlers ── */
   const handleQuote = async () => {
@@ -198,8 +198,8 @@ export default function AdminRequestDetail() {
                   <a key={i} href={photoPath} target="_blank" rel="noopener noreferrer">
                     <img
                       src={photoPath}
-                      alt={`scrap-photo-${i}`}
-                      className="w-full h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700 hover:opacity-80 transition-opacity"
+                      alt={`Scrap ${i + 1}`}
+                      className="w-24 h-24 object-cover rounded-xl border border-gray-200 dark:border-gray-600 hover:opacity-80 transition-opacity"
                     />
                   </a>
                 ))}

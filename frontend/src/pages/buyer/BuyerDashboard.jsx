@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart, Clock, TrendingUp, ArrowRight, Package } from 'lucide-react';
 import useFetch from '../../hooks/useFetch';
@@ -24,8 +25,11 @@ function StatCard({ icon: Icon, label, value, color, sub }) {
 export default function BuyerDashboard() {
   const navigate = useNavigate();
 
-  const { data: ordersData, loading: ordersLoading } = useFetch(() => getMyOrders(), []);
-  const { data: invData, loading: invLoading } = useFetch(() => getInventory(), []);
+  const fetchOrders = useCallback(() => getMyOrders(), []);
+  const { data: ordersData, loading: ordersLoading } = useFetch(fetchOrders);
+
+  const fetchInv = useCallback(() => getInventory(), []);
+  const { data: invData, loading: invLoading } = useFetch(fetchInv);
 
   const orders = ordersData?.orders ?? [];
   const inventory = invData?.inventory ?? [];

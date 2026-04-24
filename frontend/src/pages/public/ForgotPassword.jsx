@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { forgotPassword } from '../../api/auth.api';
+import toast from 'react-hot-toast';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ export default function ForgotPassword() {
     setSubmitting(true);
     try {
       await forgotPassword(email);
+      toast.success('Reset link sent to your email.');
     } catch {
       // Swallow errors — always show the safe message
     } finally {

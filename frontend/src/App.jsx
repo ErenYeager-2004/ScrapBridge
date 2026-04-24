@@ -26,6 +26,7 @@ import AdminRequestDetail from './pages/admin/RequestDetail';
 import AllOrders from './pages/admin/AllOrders';
 import InventoryManager from './pages/admin/InventoryManager';
 import FeedbackView from './pages/admin/FeedbackView';
+import ExportTools from './pages/admin/ExportTools';
 
 // Home User pages
 import UserDashboard from './pages/homeuser/UserDashboard';
@@ -37,6 +38,7 @@ import UserRequestDetail from './pages/homeuser/RequestDetail';
 import CollectorDashboard from './pages/collector/CollectorDashboard';
 import AssignedPickups from './pages/collector/AssignedPickups';
 import PickupDetail from './pages/collector/PickupDetail';
+import CollectorHistory from './pages/collector/CollectorHistory';
 
 // Buyer pages
 import BuyerDashboard from './pages/buyer/BuyerDashboard';
@@ -79,6 +81,7 @@ export default function App() {
                   <Route path="orders" element={<AllOrders />} />
                   <Route path="inventory" element={<InventoryManager />} />
                   <Route path="feedback" element={<FeedbackView />} />
+                  <Route path="export" element={<ExportTools />} />
                 </Route>
               </Route>
             </Route>
@@ -104,6 +107,7 @@ export default function App() {
                   <Route path="dashboard" element={<CollectorDashboard />} />
                   <Route path="pickups" element={<AssignedPickups />} />
                   <Route path="pickups/:id" element={<PickupDetail />} />
+                  <Route path="history" element={<CollectorHistory />} />
                 </Route>
               </Route>
             </Route>

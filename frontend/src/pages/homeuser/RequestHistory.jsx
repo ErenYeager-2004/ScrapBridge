@@ -96,7 +96,7 @@ export default function RequestHistory() {
         {!loading && !error && filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <div className="w-14 h-14 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-              <ClipboardList size={28} className="text-gray-400" />
+              <Plus size={28} className="text-gray-400" />
             </div>
             <p className="text-gray-500 dark:text-gray-400 font-medium">
               {statusFilter === 'ALL'

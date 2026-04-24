@@ -96,8 +96,9 @@ export default function FeedbackView() {
         )}
 
         {!loading && !error && feedbackList.length === 0 && (
-          <div className="px-5 py-10 text-center text-gray-400 dark:text-gray-500 text-sm">
-            No feedback has been submitted yet.
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <Star size={48} className="text-gray-300 dark:text-gray-600 mb-3" />
+            <p className="text-sm font-medium">No feedback submitted yet.</p>
           </div>
         )}
 

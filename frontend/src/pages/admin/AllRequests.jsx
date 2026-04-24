@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter, Eye } from 'lucide-react';
+import { Filter, Eye, ClipboardList } from 'lucide-react';
 import useFetch from '../../hooks/useFetch';
 import { getAllRequests } from '../../api/requests.api';
 import StatusBadge from '../../components/common/StatusBadge';
-import { formatDate, formatCurrency } from '../../utils/formatters';
+import { formatDate } from '../../utils/formatters';
 
 const STATUS_OPTIONS = ['', 'PENDING', 'QUOTED', 'SCHEDULED', 'COLLECTED', 'COMPLETED', 'REJECTED'];
 
@@ -18,7 +18,8 @@ export default function AllRequests() {
   const [search, setSearch] = useState('');
 
   /* ── fetch all requests (no query params — we filter client-side for search) ── */
-  const { data, loading, error } = useFetch(() => getAllRequests(), []);
+  const fetchRequests = useCallback(() => getAllRequests(), []);
+  const { data, loading, error } = useFetch(fetchRequests);
   const requests = data?.requests ?? [];
 
   /* ── client-side filtering ── */
@@ -152,8 +153,11 @@ export default function AllRequests() {
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-sm text-gray-400 dark:text-gray-500">
-                      No requests match the current filters.
+                    <td colSpan={7} className="px-4 py-16 text-center text-gray-400">
+                      <div className="flex flex-col items-center justify-center">
+                        <ClipboardList size={48} className="text-gray-300 dark:text-gray-600 mb-3" />
+                        <p className="text-sm font-medium">No requests in the system yet.</p>
+                      </div>
                     </td>
                   </tr>
                 ) : (

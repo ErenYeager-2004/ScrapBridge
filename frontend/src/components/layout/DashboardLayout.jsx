@@ -4,7 +4,7 @@ import Navbar from '../common/Navbar';
 
 export default function DashboardLayout() {
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <Sidebar />
       <Navbar />
       {/* Main content — offset for fixed sidebar (w-64) and navbar (h-16) */}

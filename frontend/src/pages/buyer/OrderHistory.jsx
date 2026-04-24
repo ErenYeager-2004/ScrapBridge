@@ -1,11 +1,13 @@
-import { ClipboardList } from 'lucide-react';
+import { useCallback } from 'react';
+import { ClipboardList, ShoppingCart } from 'lucide-react';
 import useFetch from '../../hooks/useFetch';
 import { getMyOrders } from '../../api/orders.api';
 import StatusBadge from '../../components/common/StatusBadge';
 import { formatDate, formatCurrency, formatWeight } from '../../utils/formatters';
 
 export default function OrderHistory() {
-  const { data, loading } = useFetch(() => getMyOrders(), []);
+  const fetchOrders = useCallback(() => getMyOrders(), []);
+  const { data, loading } = useFetch(fetchOrders);
   const orders = data?.orders ?? [];
 
   return (
@@ -26,8 +28,8 @@ export default function OrderHistory() {
           </div>
         ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-            <ClipboardList size={48} className="text-gray-300 dark:text-gray-600 mb-3" />
-            <p className="text-sm font-medium">No orders yet.</p>
+            <ShoppingCart size={48} className="text-gray-300 dark:text-gray-600 mb-3" />
+            <p className="text-sm font-medium">You haven't placed any orders yet.</p>
             <p className="text-xs mt-1">Browse the inventory to place your first order.</p>
           </div>
         ) : (

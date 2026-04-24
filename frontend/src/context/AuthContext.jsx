@@ -1,18 +1,18 @@
 import { createContext, useState, useEffect, useCallback } from 'react';
 import { getMe } from '../api/auth.api';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(() => localStorage.getItem('scrapbridge_token'));
+  // Only show loading initially if we actually have a token to verify
+  const [loading, setLoading] = useState(() => !!localStorage.getItem('scrapbridge_token'));
 
   // On mount: restore session from localStorage token
   useEffect(() => {
-    const storedToken = localStorage.getItem('scrapbridge_token');
-    if (storedToken) {
-      setToken(storedToken);
+    if (token) {
       getMe()
         .then((res) => setUser(res.data.user))
         .catch(() => {
@@ -21,8 +21,6 @@ export function AuthProvider({ children }) {
           setToken(null);
         })
         .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
     }
   }, []);
 

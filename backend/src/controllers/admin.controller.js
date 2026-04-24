@@ -2,6 +2,7 @@
 // Task 7.1 — Admin Dashboard Stats Aggregation
 
 import prisma from "../config/prisma.js";
+import { generateRequestsCSV, generateInventoryCSV } from "../services/csv.service.js";
 
 // ── getDashboardStats ─────────────────────────────────────────────────────────
 // GET /api/admin/stats  [ADMIN only]
@@ -108,5 +109,33 @@ export const getDashboardStats = async (req, res) => {
   } catch (err) {
     console.error("[getDashboardStats]", err);
     return res.status(500).json({ error: "Internal server error." });
+  }
+};
+
+// ── exportRequests ─────────────────────────────────────────────────────────────
+// GET /api/admin/export/requests [ADMIN only]
+export const exportRequests = async (req, res) => {
+  try {
+    const csvString = await generateRequestsCSV();
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", 'attachment; filename="scrapbridge-requests.csv"');
+    return res.status(200).send(csvString);
+  } catch (err) {
+    console.error("[exportRequests]", err);
+    return res.status(500).json({ error: "Failed to export requests CSV." });
+  }
+};
+
+// ── exportInventory ────────────────────────────────────────────────────────────
+// GET /api/admin/export/inventory [ADMIN only]
+export const exportInventory = async (req, res) => {
+  try {
+    const csvString = await generateInventoryCSV();
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", 'attachment; filename="scrapbridge-inventory.csv"');
+    return res.status(200).send(csvString);
+  } catch (err) {
+    console.error("[exportInventory]", err);
+    return res.status(500).json({ error: "Failed to export inventory CSV." });
   }
 };

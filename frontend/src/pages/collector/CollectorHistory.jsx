@@ -1,20 +1,24 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Filter, Truck } from 'lucide-react';
+import { Eye, Filter, Archive } from 'lucide-react';
 import useFetch from '../../hooks/useFetch';
 import { getAssignedPickups } from '../../api/requests.api';
 import StatusBadge from '../../components/common/StatusBadge';
 import { formatDate } from '../../utils/formatters';
 
-const STATUS_OPTIONS = ['', 'SCHEDULED', 'COLLECTED'];
+const STATUS_OPTIONS = ['', 'COLLECTED', 'COMPLETED'];
 
-export default function AssignedPickups() {
+export default function CollectorHistory() {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState('');
 
   const fetchPickups = useCallback(() => getAssignedPickups(), []);
   const { data, loading, error } = useFetch(fetchPickups);
-  const requests = data?.requests ?? [];
+  
+  const requests = useMemo(() => {
+      // For History, only show past/finished ones.
+      return (data?.requests ?? []).filter(r => r.status === 'COLLECTED' || r.status === 'COMPLETED');
+  }, [data]);
 
   const filtered = useMemo(() => {
     if (!statusFilter) return requests;
@@ -31,9 +35,9 @@ export default function AssignedPickups() {
     <div className="p-6 lg:p-8">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Assigned Pickups</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Pickup History</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          All scrap pickups assigned to you.
+          View your past collected and completed pickups.
         </p>
       </div>
 
@@ -49,7 +53,7 @@ export default function AssignedPickups() {
             className="text-sm border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-500"
           >
             {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>{s || 'All Statuses'}</option>
+              <option key={s} value={s}>{s || 'All Past Statuses'}</option>
             ))}
           </select>
         </div>
@@ -68,12 +72,12 @@ export default function AssignedPickups() {
         {loading && (
           <div className="flex items-center justify-center py-16 text-gray-400">
             <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin mr-3" />
-            Loading pickups…
+            Loading history…
           </div>
         )}
 
         {error && (
-          <div className="py-12 text-center text-red-500 text-sm">Failed to load pickups.</div>
+          <div className="py-12 text-center text-red-500 text-sm">Failed to load history.</div>
         )}
 
         {!loading && !error && (
@@ -81,7 +85,7 @@ export default function AssignedPickups() {
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-900/50">
                 <tr>
-                  {['Request ID', 'User', 'Address', 'Materials', 'Scheduled Date', 'Status', 'Action'].map((h) => (
+                  {['Request ID', 'User', 'Address', 'Materials', 'Date', 'Status', 'Action'].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap"
@@ -96,8 +100,8 @@ export default function AssignedPickups() {
                   <tr>
                     <td colSpan={7} className="px-4 py-16 text-center text-gray-400">
                       <div className="flex flex-col items-center justify-center">
-                        <Truck size={48} className="text-gray-300 dark:text-gray-600 mb-3" />
-                        <p className="text-sm font-medium">No pickups assigned to you yet.</p>
+                        <Archive size={48} className="text-gray-300 dark:text-gray-600 mb-3" />
+                        <p className="text-sm font-medium">No past pickups found.</p>
                       </div>
                     </td>
                   </tr>
@@ -124,7 +128,6 @@ export default function AssignedPickups() {
                       </td>
                       <td className="px-4 py-3">
                         <button
-                          id={`view-pickup-${r.id}`}
                           onClick={() => navigate(`/collector/pickups/${r.id}`)}
                           className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/30 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors"
                         >
@@ -141,7 +144,7 @@ export default function AssignedPickups() {
 
         {!loading && !error && (
           <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400">
-            Showing {filtered.length} of {requests.length} assigned pickups
+            Showing {filtered.length} of {requests.length} past pickups
           </div>
         )}
       </div>

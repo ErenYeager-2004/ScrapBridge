@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { ClipboardList, CheckCircle, Truck, XCircle } from 'lucide-react';
+import { ClipboardList, CheckCircle, Truck, XCircle, ShoppingCart } from 'lucide-react';
 import useFetch from '../../hooks/useFetch';
 import { getAllOrders, confirmOrder, deliverOrder, cancelOrder } from '../../api/orders.api';
 import StatusBadge from '../../components/common/StatusBadge';
@@ -8,7 +8,8 @@ import ConfirmModal from '../../components/common/ConfirmModal';
 import { formatDate, formatCurrency, formatWeight } from '../../utils/formatters';
 
 export default function AllOrders() {
-  const { data, loading, refetch } = useFetch(() => getAllOrders(), []);
+  const fetchOrders = useCallback(() => getAllOrders(), []);
+  const { data, loading, refetch } = useFetch(fetchOrders);
   const [actionLoading, setActionLoading] = useState(null); // order id currently being actioned
 
   // Cancel modal state
@@ -57,8 +58,8 @@ export default function AllOrders() {
           </div>
         ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-gray-400">
-            <ClipboardList size={48} className="text-gray-300 dark:text-gray-600 mb-3" />
-            <p className="text-sm font-medium">No orders placed yet.</p>
+            <ShoppingCart size={48} className="text-gray-300 dark:text-gray-600 mb-3" />
+            <p className="text-sm font-medium">No buyer orders yet.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">

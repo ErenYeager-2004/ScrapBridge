@@ -364,7 +364,7 @@ export default function BrowseInventory() {
       {/* Empty state */}
       {!loading && inventory.length === 0 && (
         <div className="flex flex-col items-center justify-center py-24 text-gray-400">
-          <Recycle size={52} className="text-gray-300 dark:text-gray-600 mb-4" />
+          <Package size={52} className="text-gray-300 dark:text-gray-600 mb-4" />
           <p className="text-base font-medium text-gray-500 dark:text-gray-400">
             No inventory available right now. Check back soon!
           </p>

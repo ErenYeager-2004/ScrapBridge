@@ -15,11 +15,18 @@ export default function Navbar() {
   };
 
   return (
-    <header className="fixed top-0 left-64 right-0 h-16 bg-gray-950/80 backdrop-blur-md border-b border-gray-800 flex items-center justify-between px-6 z-30">
+    <header className="fixed top-0 left-64 right-0 h-16 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-6 z-30 transition-colors duration-200">
       {/* Left: user identity */}
       <div>
-        <p className="text-white font-semibold text-sm">{user?.name}</p>
-        <p className="text-gray-500 text-xs">{user?.email}</p>
+        <p className="text-gray-900 dark:text-white font-semibold text-sm flex items-center gap-2">
+          {user?.name}
+          {user?.role && (
+            <span className="px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold uppercase tracking-wider">
+              {user.role.replace('_', ' ')}
+            </span>
+          )}
+        </p>
+        <p className="text-gray-500 dark:text-gray-400 text-xs">{user?.email}</p>
       </div>
 
       {/* Right: actions */}

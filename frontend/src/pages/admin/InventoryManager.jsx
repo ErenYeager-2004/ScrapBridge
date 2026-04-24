@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Boxes, ChevronDown } from 'lucide-react';
 import useFetch from '../../hooks/useFetch';
 import { getAllInventory } from '../../api/inventory.api';
@@ -33,7 +33,8 @@ function AvailableBadge({ availableKg }) {
 }
 
 export default function InventoryManager() {
-  const { data, loading } = useFetch(() => getAllInventory(), []);
+  const fetchInventory = useCallback(() => getAllInventory(), []);
+  const { data, loading } = useFetch(fetchInventory);
   const allInventory = data?.inventory ?? [];
 
   const [materialFilter, setMaterialFilter] = useState('');

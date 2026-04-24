@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Truck, CheckCircle2, Calendar, ArrowRight } from 'lucide-react';
 import useFetch from '../../hooks/useFetch';
@@ -22,7 +22,8 @@ function StatCard({ icon: Icon, label, value, color }) {
 
 export default function CollectorDashboard() {
   const navigate = useNavigate();
-  const { data, loading } = useFetch(() => getAssignedPickups(), []);
+  const fetchPickups = useCallback(() => getAssignedPickups(), []);
+  const { data, loading } = useFetch(fetchPickups);
   const requests = data?.requests ?? [];
 
   const today = new Date();

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { resetPassword } from '../../api/auth.api';
+import toast from 'react-hot-toast';
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -41,6 +42,7 @@ export default function ResetPassword() {
     setError('');
     try {
       await resetPassword(token, form.newPassword);
+      toast.success('Password reset successfully!');
       setSuccess(true);
       // Navigate to login after 2 seconds
       setTimeout(() => navigate('/login'), 2000);

@@ -272,12 +272,13 @@ export default function RequestDetail() {
                 key={idx}
                 href={photoPath}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
+                className="block aspect-video overflow-hidden rounded border border-gray-200 dark:border-gray-700"
               >
                 <img
                   src={photoPath}
-                  alt={`Photo ${idx + 1}`}
-                  className="w-24 h-24 object-cover rounded-xl border border-gray-200 dark:border-gray-600 hover:opacity-80 transition-opacity"
+                  alt={`Scrap ${idx + 1}`}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform"
                 />
               </a>
             ))}

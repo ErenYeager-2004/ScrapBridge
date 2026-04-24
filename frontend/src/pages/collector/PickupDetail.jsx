@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, User, MapPin, Package, Calendar, Image as ImageIcon, CheckCircle, Loader } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import useFetch from '../../hooks/useFetch';
 import { getRequestById, collectRequest } from '../../api/requests.api';
@@ -14,7 +14,8 @@ export default function PickupDetail() {
   const [collectModal, setCollectModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const { data, loading, error, refetch } = useFetch(() => getRequestById(id), [id]);
+  const fetchRequest = useCallback(() => getRequestById(id), [id]);
+  const { data, loading, error, refetch } = useFetch(fetchRequest);
   const request = data?.request ?? null;
 
   const handleCollect = async () => {
@@ -147,8 +148,8 @@ export default function PickupDetail() {
                   <a key={i} href={photoPath} target="_blank" rel="noopener noreferrer">
                     <img
                       src={photoPath}
-                      alt={`scrap-photo-${i}`}
-                      className="w-full h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-700 hover:opacity-80 transition-opacity"
+                      alt={`Scrap ${i + 1}`}
+                      className="w-24 h-24 object-cover rounded-xl border border-gray-200 dark:border-gray-600 hover:opacity-80 transition-opacity"
                     />
                   </a>
                 ))}
