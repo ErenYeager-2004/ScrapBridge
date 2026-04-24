@@ -12,6 +12,7 @@ import {
   MapPin,
   CheckSquare,
   Search,
+  Users,
 } from 'lucide-react';
 import { AuthContext } from '../../context/AuthContext';
 
@@ -29,6 +30,7 @@ const NAV_LINKS = {
     { to: '/admin/inventory',  label: 'Inventory',     Icon: Package },
     { to: '/admin/orders',     label: 'Orders',        Icon: ShoppingCart },
     { to: '/admin/feedback',   label: 'Feedback',      Icon: Star },
+    { to: '/admin/users',      label: 'Manage Users',  Icon: Users },
     { to: '/admin/export',     label: 'Export',        Icon: Download },
   ],
   HOME_USER: [

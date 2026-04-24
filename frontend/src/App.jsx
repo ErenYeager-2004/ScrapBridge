@@ -27,6 +27,8 @@ import AllOrders from './pages/admin/AllOrders';
 import InventoryManager from './pages/admin/InventoryManager';
 import FeedbackView from './pages/admin/FeedbackView';
 import ExportTools from './pages/admin/ExportTools';
+import ManageUsers from "./pages/admin/ManageUsers";
+import UserDetail from "./pages/admin/UserDetail";
 
 // Home User pages
 import UserDashboard from './pages/homeuser/UserDashboard';
@@ -81,6 +83,8 @@ export default function App() {
                   <Route path="orders" element={<AllOrders />} />
                   <Route path="inventory" element={<InventoryManager />} />
                   <Route path="feedback" element={<FeedbackView />} />
+                  <Route path="users" element={<ManageUsers />} />
+                  <Route path="users/:id" element={<UserDetail />} />
                   <Route path="export" element={<ExportTools />} />
                 </Route>
               </Route>

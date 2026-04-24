@@ -26,3 +26,36 @@ export const exportRequestsCSV = () =>
  */
 export const exportInventoryCSV = () =>
   api.get('/admin/export/inventory', { responseType: 'blob' });
+
+/**
+ * GET /api/admin/users
+ * params: { role, search, sortBy, order } — all optional
+ */
+export const getAllUsers = (params = {}) =>
+  api.get('/admin/users', { params });
+
+/**
+ * GET /api/admin/users/:id
+ */
+export const getUserById = (id) =>
+  api.get(`/admin/users/${id}`);
+
+/**
+ * POST /api/admin/users
+ * data: { name, email, password, phone, role }
+ */
+export const createUser = (data) =>
+  api.post('/admin/users', data);
+
+/**
+ * PUT /api/admin/users/:id
+ * data: { name, phone }
+ */
+export const updateUser = (id, data) =>
+  api.put(`/admin/users/${id}`, data);
+
+/**
+ * DELETE /api/admin/users/:id
+ */
+export const deleteUser = (id) =>
+  api.delete(`/admin/users/${id}`);

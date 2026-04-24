@@ -16,6 +16,7 @@ import inventoryRoutes    from "./src/routes/inventory.routes.js";
 import orderRoutes        from "./src/routes/order.routes.js";
 import feedbackRoutes     from "./src/routes/feedback.routes.js";
 import adminRoutes        from "./src/routes/admin.routes.js";
+import userRoutes         from "./src/routes/user.routes.js";
 
 // ESM __dirname workaround
 const __filename = fileURLToPath(import.meta.url);
@@ -45,6 +46,7 @@ app.use("/api/inventory",     inventoryRoutes);
 app.use("/api/orders",        orderRoutes);
 app.use("/api/feedback",      feedbackRoutes);
 app.use("/api/admin",         adminRoutes);
+app.use("/api/admin/users",   userRoutes);
 
 // Collector List (used by Admin quote form)
 // GET /api/collectors → returns all users with role COLLECTOR
