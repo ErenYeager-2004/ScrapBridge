@@ -29,6 +29,7 @@ import FeedbackView from './pages/admin/FeedbackView';
 import ExportTools from './pages/admin/ExportTools';
 import ManageUsers from "./pages/admin/ManageUsers";
 import UserDetail from "./pages/admin/UserDetail";
+import LedgerEntries from "./pages/admin/LedgerEntries";
 
 // Home User pages
 import UserDashboard from './pages/homeuser/UserDashboard';
@@ -85,6 +86,7 @@ export default function App() {
                   <Route path="feedback" element={<FeedbackView />} />
                   <Route path="users" element={<ManageUsers />} />
                   <Route path="users/:id" element={<UserDetail />} />
+                  <Route path="ledger" element={<LedgerEntries />} />
                   <Route path="export" element={<ExportTools />} />
                 </Route>
               </Route>

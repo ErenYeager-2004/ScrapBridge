@@ -73,6 +73,7 @@ export const getMyRequests = async (req, res) => {
 
     const requests = await prisma.scrapRequest.findMany({
       where,
+      include: { feedback: true },
       orderBy: { createdAt: "desc" },
     });
 

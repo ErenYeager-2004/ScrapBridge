@@ -11,7 +11,7 @@ import api from './axios';
  *          weeklyRequestCounts, materialDistribution, monthlyRevenue,
  *          averageRating, totalFeedbackCount }
  */
-export const getDashboardStats = () => api.get('/admin/stats');
+export const getDashboardStats = (days = 7) => api.get('/admin/stats', { params: { days } });
 
 /**
  * GET /api/admin/export/requests

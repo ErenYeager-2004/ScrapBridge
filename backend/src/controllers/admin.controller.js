@@ -8,6 +8,10 @@ import { generateRequestsCSV, generateInventoryCSV } from "../services/csv.servi
 // Returns metrics for the admin dashboard.
 export const getDashboardStats = async (req, res) => {
   try {
+    const days = parseInt(req.query.days, 10) || 7;
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+
     // Users grouped by role
     const usersByRole = await prisma.user.groupBy({
       by: ["role"],
@@ -29,35 +33,39 @@ export const getDashboardStats = async (req, res) => {
       where: { status: "PLACED" },
     });
 
-    // Total revenue calculation
+    // Total revenue calculation (filtered by days)
     const revenueAggregate = await prisma.scrapRequest.aggregate({
       _sum: { adminPrice: true },
-      where: { status: "COMPLETED" },
+      where: { 
+        status: "COMPLETED",
+        updatedAt: { gte: cutoffDate }
+      },
     });
     const totalRevenue = Number(revenueAggregate._sum.adminPrice ?? 0);
 
-    // Weekly request counts (last 30 days)
-    const weeklyRequests = await prisma.$queryRaw`
+    // Daily request counts (filtered by days)
+    const dailyRequests = await prisma.$queryRaw`
       SELECT
-        DATE_FORMAT(createdAt, '%Y-%u') AS week,
+        DATE_FORMAT(createdAt, '%Y-%m-%d') AS day,
         COUNT(*)                        AS count
       FROM ScrapRequest
-      WHERE createdAt >= DATE_SUB(NOW(), INTERVAL 30 DAY)
-      GROUP BY week
-      ORDER BY week ASC
+      WHERE createdAt >= ${cutoffDate}
+      GROUP BY day
+      ORDER BY day ASC
     `;
 
-    const weeklyRequestCounts = weeklyRequests.map((r) => ({
-      week: r.week,
+    const dailyRequestCounts = dailyRequests.map((r) => ({
+      day: r.day,
       count: Number(r.count),
     }));
 
-    // Material distribution by type
+    // Material distribution by type (filtered by days)
     const materialDistribution = await prisma.$queryRaw`
       SELECT
         materialType,
         SUM(totalKg) AS totalWeight
       FROM Inventory
+      WHERE createdAt >= ${cutoffDate}
       GROUP BY materialType
       ORDER BY totalWeight DESC
     `;
@@ -98,7 +106,7 @@ export const getDashboardStats = async (req, res) => {
       activeRequestsCount,
       pendingOrdersCount,
       totalRevenue,
-      weeklyRequestCounts,
+      dailyRequestCounts,
       materialDistribution: materialData,
       monthlyRevenue: monthlyRevenueData,
       averageRating,

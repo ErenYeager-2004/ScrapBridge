@@ -13,6 +13,7 @@ import {
   CheckSquare,
   Search,
   Users,
+  BookOpen,
 } from 'lucide-react';
 import { AuthContext } from '../../context/AuthContext';
 
@@ -31,6 +32,7 @@ const NAV_LINKS = {
     { to: '/admin/orders',     label: 'Orders',        Icon: ShoppingCart },
     { to: '/admin/feedback',   label: 'Feedback',      Icon: Star },
     { to: '/admin/users',      label: 'Manage Users',  Icon: Users },
+    { to: '/admin/ledger',     label: 'Ledger',        Icon: BookOpen },
     { to: '/admin/export',     label: 'Export',        Icon: Download },
   ],
   HOME_USER: [

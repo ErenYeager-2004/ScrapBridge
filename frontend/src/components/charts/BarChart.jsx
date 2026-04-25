@@ -23,13 +23,13 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
 
 const DEFAULT_COLOR = '#1A7A4A';
 
-export default function BarChart({ labels = [], datasets = [], title = '' }) {
+export default function BarChart({ labels = [], datasets = [], title = '', tickColors }) {
   // Apply default colour to any dataset that hasn't specified one
   const normalisedDatasets = datasets.map((ds) => ({
-    backgroundColor: DEFAULT_COLOR,
-    borderRadius: 6,
-    borderSkipped: false,
-    hoverBackgroundColor: '#15643C',
+    backgroundColor: ds.backgroundColor || DEFAULT_COLOR,
+    borderRadius: ds.borderRadius || 6,
+    borderSkipped: ds.borderSkipped !== undefined ? ds.borderSkipped : false,
+    hoverBackgroundColor: ds.hoverBackgroundColor || '#15643C',
     ...ds,
   }));
 
@@ -55,17 +55,11 @@ export default function BarChart({ labels = [], datasets = [], title = '' }) {
     scales: {
       x: {
         grid: { display: false },
-        ticks: { color: '#9CA3AF', font: { size: 12 } },
+        ticks: { color: tickColors || '#9CA3AF', font: { size: 12, weight: '600' } },
         border: { display: false },
       },
       y: {
-        grid: { color: 'rgba(156,163,175,0.12)' },
-        ticks: {
-          color: '#9CA3AF',
-          font: { size: 12 },
-          stepSize: 1,
-        },
-        border: { display: false },
+        display: false,
         beginAtZero: true,
       },
     },
