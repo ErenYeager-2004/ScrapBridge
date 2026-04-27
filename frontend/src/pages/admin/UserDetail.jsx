@@ -56,8 +56,13 @@ export default function UserDetail() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await updateUser(id, { name: editName, phone: editPhone });
-      setUser(res.data.user || res.data);
+      await updateUser(id, { name: editName, phone: editPhone });
+      setUser(prevUser => ({
+  ...prevUser,
+  name: editName,
+  phone: editPhone
+}));
+  
       setEditMode(false);
       toast.success("User updated successfully.");
     } catch (err) {
@@ -109,183 +114,196 @@ export default function UserDetail() {
     );
   }
 
+  const getInitials = (name) => {
+    if (!name) return "?";
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return parts[0].substring(0, 2).toUpperCase();
+  };
+
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="p-6 lg:p-8 max-w-7xl mx-auto font-sans">
       {/* 1. TOP BAR */}
       <div className="mb-6 flex items-center justify-between">
         <button
           onClick={() => navigate("/admin/users")}
-          className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+          className="flex items-center gap-2 text-sm font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
         >
           <ChevronLeft size={16} /> Back to Users
         </button>
-
-        <div>
-          {!editMode ? (
-            <button
-              onClick={handleEditToggle}
-              className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors"
-            >
-              <Pencil size={16} /> Edit
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleEditToggle}
-                className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 py-2 rounded-lg text-sm transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-[#1A7A4A] hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
-              >
-                {saving ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <Save size={16} />
-                )}
-                Save Changes
-              </button>
-            </div>
-          )}
-        </div>
       </div>
 
-      {/* 2. USER INFO CARD */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Left Column */}
+        <div className="lg:col-span-4 space-y-6">
           
-          {/* Left column — identity fields */}
-          <div className="space-y-5">
-            <div>
-              <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">
-                Full Name
-              </label>
+          {/* USER INFO CARD */}
+          <div className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-sm p-8 relative">
+            {!editMode ? (
+              <button
+                onClick={handleEditToggle}
+                className="absolute top-6 right-6 text-xs text-[#1A7A4A] dark:text-green-400 font-bold flex items-center gap-1 hover:underline"
+              >
+                <Pencil size={12} strokeWidth={3} /> Edit
+              </button>
+            ) : (
+              <div className="absolute top-6 right-6 flex items-center gap-3">
+                <button
+                  onClick={handleEditToggle}
+                  className="text-xs text-gray-400 font-bold hover:text-gray-600"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="text-xs text-[#1A7A4A] dark:text-green-400 font-bold flex items-center gap-1 hover:underline disabled:opacity-50"
+                >
+                  {saving && <div className="w-3 h-3 border-2 border-[#1A7A4A]/30 border-t-[#1A7A4A] rounded-full animate-spin" />}
+                  Save
+                </button>
+              </div>
+            )}
+
+            <div className="flex flex-col items-center mb-8 pt-4">
+              <div className="w-24 h-24 bg-[#F2F4F7] dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-700 dark:text-gray-200 text-2xl font-bold mb-4 shadow-sm">
+                {getInitials(user.name)}
+              </div>
+              
               {!editMode ? (
-                <p className="text-gray-900 dark:text-white font-medium">{user.name}</p>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{user.name}</h2>
               ) : (
                 <input
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1A7A4A]"
+                  className="mb-3 text-center text-xl font-bold border-b border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-[#1A7A4A] w-full max-w-[200px]"
                 />
               )}
-            </div>
 
-            <div>
-              <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">
-                Email Address
-              </label>
-              <p className="text-gray-900 dark:text-white">{user.email}</p>
-              {editMode && (
-                <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                  <Lock size={10} /> Email cannot be changed.
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">
-                Phone
-              </label>
-              {!editMode ? (
-                user.phone ? (
-                  <p className="text-gray-900 dark:text-white">{user.phone}</p>
-                ) : (
-                  <span className="text-gray-400 italic text-sm">Not provided</span>
-                )
-              ) : (
-                <input
-                  type="text"
-                  value={editPhone}
-                  onChange={(e) => setEditPhone(e.target.value)}
-                  placeholder="e.g. 9876543210"
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1A7A4A]"
-                />
-              )}
-            </div>
-          </div>
-
-          {/* Right column — status fields */}
-          <div className="space-y-5">
-            <div>
-              <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">
-                Role
-              </label>
-              <div>
-                {user.role === 'ADMIN' && <span className="px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full text-xs font-medium">Admin</span>}
-                {user.role === 'HOME_USER' && <span className="px-2.5 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-full text-xs font-medium">Home User</span>}
-                {user.role === 'COLLECTOR' && <span className="px-2.5 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-full text-xs font-medium">Collector</span>}
-                {user.role === 'BUYER' && <span className="px-2.5 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full text-xs font-medium">Buyer</span>}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">
-                Account Status
-              </label>
-              <div>
+              <div className="flex items-center gap-2">
+                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
+                  ${user.role === 'ADMIN' ? 'bg-red-100 text-red-700' : 
+                    user.role === 'HOME_USER' ? 'bg-[#E5F0FF] text-[#0055FF]' : 
+                    user.role === 'COLLECTOR' ? 'bg-purple-100 text-purple-700' : 
+                    'bg-amber-100 text-amber-700'}`}>
+                  {user.role.replace('_', ' ')}
+                </span>
+                
                 {user.isVerified ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full text-xs font-medium">
-                    <CheckCircle size={12} /> Verified
+                  <span className="flex items-center gap-1 px-3 py-1 bg-[#E8F5E9] text-[#2E7D32] rounded-full text-[10px] font-bold uppercase tracking-wider">
+                    <CheckCircle size={10} strokeWidth={3} /> Verified
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full text-xs font-medium">
-                    <XCircle size={12} /> Unverified
+                  <span className="flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                    Unverified
                   </span>
                 )}
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">
-                Member Since
-              </label>
-              <p className="text-gray-900 dark:text-white">{formatDate(user.createdAt)}</p>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+                  Email Address
+                </label>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{user.email}</p>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+                  Phone
+                </label>
+                {!editMode ? (
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{user.phone || "Not provided"}</p>
+                ) : (
+                  <input
+                    type="text"
+                    value={editPhone}
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    placeholder="e.g. 9876543210"
+                    className="w-full text-sm font-medium border-b border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-[#1A7A4A] pb-1"
+                  />
+                )}
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
+                  Member Since
+                </label>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{formatDate(user.createdAt)}</p>
+              </div>
             </div>
           </div>
 
+          {/* DANGER ZONE CARD */}
+          <div className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-sm p-6 lg:p-8">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle size={18} className="text-[#D92D20]" strokeWidth={2.5} />
+              <h3 className="font-bold text-[#D92D20] dark:text-red-400 text-lg">Danger Zone</h3>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-6 leading-relaxed font-medium">
+              Permanently remove this user and all associated data. This action cannot be undone.
+            </p>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              disabled={deleting}
+              className="w-full bg-[#FFEAE8] hover:bg-red-200 dark:bg-red-900/30 text-[#D92D20] dark:text-red-400 py-3 rounded-full text-sm font-bold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {deleting ? (
+                <div className="w-4 h-4 border-2 border-[#D92D20]/30 border-t-[#D92D20] rounded-full animate-spin" />
+              ) : null}
+              Delete User
+            </button>
+          </div>
+
         </div>
-      </div>
 
-      {/* 3. ROLE-SPECIFIC HISTORY SECTION */}
-      
-      {user.role === "HOME_USER" && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Scrap Request History</h3>
+        {/* Right Column */}
+        <div className="lg:col-span-8 space-y-6">
           
-          {(() => {
-            const requests = user.requests || [];
-            const total = requests.length;
-            const completed = requests.filter(r => r.status === "COMPLETED").length;
-            const active = total - completed - requests.filter(r => r.status === "REJECTED").length;
-
-            return (
-              <>
-                <div className="flex gap-3 mb-4">
-                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">Total: {total}</span>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">Completed: {completed}</span>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">Active: {active}</span>
-                </div>
-
-                {total === 0 ? (
-                  <div className="text-center py-8">
-                    <ClipboardList size={32} className="mx-auto text-gray-300 mb-2" />
-                    <p className="text-gray-400">No requests submitted yet.</p>
+          {/* FEEDBACK CARD */}
+          {user.role === "HOME_USER" && user.feedback && user.feedback.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-sm p-6 lg:p-8">
+              <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-6">Feedback Given</h3>
+              <div className="space-y-4">
+                {user.feedback.map(f => (
+                  <div key={f.id} className="bg-[#F7F9FB] dark:bg-gray-700/50 rounded-[1.5rem] p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <StarRating value={f.rating} readOnly={true} />
+                      <span className="text-[10px] font-bold text-gray-400 uppercase">{formatDate(f.createdAt)}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed font-medium">
+                      "{f.comment || "No comment provided."}"
+                    </p>
                   </div>
-                ) : (
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* REQUEST HISTORY CARD */}
+          {user.role === "HOME_USER" && (
+            <div className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-sm p-6 lg:p-8">
+              <div className="mb-8">
+                <h3 className="font-bold text-xl text-gray-900 dark:text-white">Scrap Request History</h3>
+              </div>
+              
+              {(() => {
+                const requests = user.requests || [];
+                if (requests.length === 0) return <p className="text-gray-400 text-sm text-center py-8 font-medium">No requests submitted yet.</p>;
+
+                return (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left rounded-tl-lg">Request ID</th>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left">Status</th>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left">Materials</th>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left">Price Quoted</th>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left rounded-tr-lg">Submitted</th>
+                      <thead>
+                        <tr className="border-b border-gray-100 dark:border-gray-700">
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Request ID</th>
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Materials</th>
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Price Quoted</th>
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Date</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -299,183 +317,114 @@ export default function UserDetail() {
                           } catch (e) {
                             console.error("Failed to parse items JSON:", e);
                           }
-
                           return (
-                            <tr key={r.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors last:border-0">
-                              <td className="px-4 py-3 font-mono text-xs text-gray-500">{r.id.slice(0, 8)}…</td>
-                              <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
-                              <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{materialsStr}</td>
-                              <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{r.adminPrice ? formatCurrency(r.adminPrice) : "—"}</td>
-                              <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{formatDate(r.createdAt)}</td>
+                            <tr key={r.id} className="border-b border-gray-50 dark:border-gray-700/50 last:border-0 hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors">
+                              <td className="py-4 px-4 font-bold text-gray-900 dark:text-gray-100 text-xs whitespace-nowrap">#{r.id.slice(0, 8).toUpperCase()}</td>
+                              <td className="py-4 px-4 whitespace-nowrap"><StatusBadge status={r.status} /></td>
+                              <td className="py-4 px-4 text-gray-600 dark:text-gray-400 text-xs font-medium">{materialsStr}</td>
+                              <td className="py-4 px-4 font-bold text-gray-900 dark:text-gray-100 text-xs whitespace-nowrap">{r.adminPrice ? formatCurrency(r.adminPrice) : "Pending"}</td>
+                              <td className="py-4 px-4 text-gray-600 dark:text-gray-400 text-xs font-medium whitespace-nowrap">{formatDate(r.createdAt)}</td>
                             </tr>
                           );
                         })}
                       </tbody>
                     </table>
                   </div>
-                )}
-              </>
-            );
-          })()}
-        </div>
-      )}
+                );
+              })()}
+            </div>
+          )}
 
-      {user.role === "COLLECTOR" && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Assigned Pickups</h3>
-          
-          {(() => {
-            const pickups = user.assignedPickups || [];
-            const totalCount = pickups.length;
-            const completedCount = pickups.filter(p => p.status === "COMPLETED").length;
-            const rate = totalCount > 0 ? ((completedCount / totalCount) * 100).toFixed(0) : 0;
+          {/* ASSIGNED PICKUPS CARD (Collector) */}
+          {user.role === "COLLECTOR" && (
+            <div className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-sm p-6 lg:p-8">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="font-bold text-xl text-gray-900 dark:text-white">Assigned Pickups</h3>
+              </div>
+              
+              {(() => {
+                const pickups = user.assignedPickups || [];
+                if (pickups.length === 0) return <p className="text-gray-400 text-sm text-center py-8 font-medium">No pickups assigned yet.</p>;
 
-            return (
-              <>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-lg text-sm mb-4">
-                  Completion Rate: {rate}% ({completedCount}/{totalCount} completed)
-                </div>
-
-                {totalCount === 0 ? (
-                  <div className="text-center py-8">
-                    <Truck size={32} className="mx-auto text-gray-300 mb-2" />
-                    <p className="text-gray-400">No pickups assigned yet.</p>
-                  </div>
-                ) : (
+                return (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left rounded-tl-lg">Pickup ID</th>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left">Status</th>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left">Address</th>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left">Scheduled</th>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left rounded-tr-lg">Assigned On</th>
+                      <thead>
+                        <tr className="border-b border-gray-100 dark:border-gray-700">
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pickup ID</th>
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Address</th>
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Scheduled</th>
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Assigned</th>
                         </tr>
                       </thead>
                       <tbody>
                         {pickups.map(p => (
-                          <tr key={p.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors last:border-0">
-                            <td className="px-4 py-3 font-mono text-xs text-gray-500">{p.id.slice(0, 8)}…</td>
-                            <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
-                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
+                          <tr key={p.id} className="border-b border-gray-50 dark:border-gray-700/50 last:border-0 hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors">
+                            <td className="py-4 px-4 font-bold text-gray-900 dark:text-gray-100 text-xs whitespace-nowrap">#{p.id.slice(0, 8).toUpperCase()}</td>
+                            <td className="py-4 px-4 whitespace-nowrap"><StatusBadge status={p.status} /></td>
+                            <td className="py-4 px-4 text-gray-600 dark:text-gray-400 text-xs font-medium">
                               {p.pickupAddress?.length > 35 ? p.pickupAddress.substring(0, 35) + "…" : p.pickupAddress || "—"}
                             </td>
-                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{p.scheduledDate ? formatDate(p.scheduledDate) : "—"}</td>
-                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{formatDate(p.createdAt)}</td>
+                            <td className="py-4 px-4 text-gray-600 dark:text-gray-400 text-xs font-medium whitespace-nowrap">{p.scheduledDate ? formatDate(p.scheduledDate) : "—"}</td>
+                            <td className="py-4 px-4 text-gray-600 dark:text-gray-400 text-xs font-medium whitespace-nowrap">{formatDate(p.createdAt)}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                )}
-              </>
-            );
-          })()}
-        </div>
-      )}
+                );
+              })()}
+            </div>
+          )}
 
-      {user.role === "BUYER" && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Order History</h3>
-          
-          {(() => {
-            const orders = user.orders || [];
-            const totalSpent = orders.filter(o => o.status === "DELIVERED").reduce((sum, o) => sum + Number(o.totalPrice), 0);
+          {/* ORDER HISTORY CARD (Buyer) */}
+          {user.role === "BUYER" && (
+            <div className="bg-white dark:bg-gray-800 rounded-[2rem] shadow-sm p-6 lg:p-8">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="font-bold text-xl text-gray-900 dark:text-white">Order History</h3>
+              </div>
+              
+              {(() => {
+                const orders = user.orders || [];
+                if (orders.length === 0) return <p className="text-gray-400 text-sm text-center py-8 font-medium">No orders placed yet.</p>;
 
-            return (
-              <>
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300 rounded-lg text-sm mb-4">
-                  Total Spent: {formatCurrency(totalSpent)} (delivered orders only)
-                </div>
-
-                {orders.length === 0 ? (
-                  <div className="text-center py-8">
-                    <ShoppingBag size={32} className="mx-auto text-gray-300 mb-2" />
-                    <p className="text-gray-400">No orders placed yet.</p>
-                  </div>
-                ) : (
+                return (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left rounded-tl-lg">Order ID</th>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left">Material</th>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left">Qty</th>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left">Total</th>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left">Status</th>
-                          <th className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left rounded-tr-lg">Date</th>
+                      <thead>
+                        <tr className="border-b border-gray-100 dark:border-gray-700">
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Order ID</th>
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Material</th>
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Qty (kg)</th>
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total</th>
+                          <th className="pb-4 px-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">Date</th>
                         </tr>
                       </thead>
                       <tbody>
                         {orders.map(o => (
-                          <tr key={o.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors last:border-0">
-                            <td className="px-4 py-3 font-mono text-xs text-gray-500">{o.id.slice(0, 8)}…</td>
-                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{o.inventory?.materialType || "—"}</td>
-                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{formatWeight(o.quantityKg)}</td>
-                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{formatCurrency(o.totalPrice)}</td>
-                            <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
-                            <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{formatDate(o.createdAt)}</td>
+                          <tr key={o.id} className="border-b border-gray-50 dark:border-gray-700/50 last:border-0 hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors">
+                            <td className="py-4 px-4 font-bold text-gray-900 dark:text-gray-100 text-xs whitespace-nowrap">#{o.id.slice(0, 8).toUpperCase()}</td>
+                            <td className="py-4 px-4 whitespace-nowrap"><StatusBadge status={o.status} /></td>
+                            <td className="py-4 px-4 text-gray-600 dark:text-gray-400 text-xs font-medium">{o.inventory?.materialType || "—"}</td>
+                            <td className="py-4 px-4 text-gray-600 dark:text-gray-400 text-xs font-medium whitespace-nowrap">{formatWeight(o.quantityKg)}</td>
+                            <td className="py-4 px-4 font-bold text-gray-900 dark:text-gray-100 text-xs whitespace-nowrap">{formatCurrency(o.totalPrice)}</td>
+                            <td className="py-4 px-4 text-gray-600 dark:text-gray-400 text-xs font-medium whitespace-nowrap">{formatDate(o.createdAt)}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                )}
-              </>
-            );
-          })()}
-        </div>
-      )}
-
-      {/* 4. FEEDBACK CARD */}
-      {user.role === "HOME_USER" && user.feedback && user.feedback.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Feedback Given</h3>
-          <div>
-            {user.feedback.map(f => (
-              <div key={f.id} className="flex items-start gap-3 border-b border-gray-100 dark:border-gray-700 pb-3 mb-3 last:border-0 last:mb-0 last:pb-0">
-                <div className="flex-shrink-0 pt-0.5">
-                  <StarRating value={f.rating} readOnly={true} />
-                </div>
-                <div>
-                  {f.comment ? (
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{f.comment}</p>
-                  ) : (
-                    <p className="text-sm text-gray-400 italic">No comment</p>
-                  )}
-                  <p className="text-xs text-gray-400 mt-1">{formatDate(f.createdAt)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* 5. DANGER ZONE CARD */}
-      <div className="border border-red-200 dark:border-red-800 rounded-xl p-6">
-        <div className="flex items-center gap-2 mb-3">
-          <AlertTriangle size={18} className="text-red-500" />
-          <h3 className="font-semibold text-red-600 dark:text-red-400">Danger Zone</h3>
-        </div>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          Permanently delete this user account. This action cannot be undone. Users with active requests or orders cannot be deleted.
-        </p>
-        <button
-          onClick={() => setShowDeleteModal(true)}
-          disabled={deleting}
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
-        >
-          {deleting ? (
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            <Trash2 size={16} />
+                );
+              })()}
+            </div>
           )}
-          Delete User
-        </button>
+
+        </div>
       </div>
 
-      {/* 6. DELETE CONFIRM MODAL */}
+      {/* DELETE CONFIRM MODAL */}
       <ConfirmModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}

@@ -124,252 +124,363 @@ export default function AdminRequestDetail() {
       </button>
 
       {/* Title row */}
-      <div className="flex items-center gap-3 mb-6">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white font-mono">
-          #{request.id.slice(0, 8)}
-        </h1>
-        <StatusBadge status={request.status} />
-        <span className="ml-auto text-xs text-gray-400">{formatDate(request.createdAt)}</span>
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
+            #{request.id.slice(0, 8)}
+          </h1>
+          <StatusBadge status={request.status} />
+        </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 font-medium">
+          Processed on {formatDate(request.createdAt)}
+        </p>
       </div>
 
       {/* Two-column layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {/* ── LEFT COLUMN (60%) ── */}
-        <div className="lg:col-span-3 space-y-5">
+        {/* ── LEFT COLUMN (2/3) ── */}
+        <div className="lg:col-span-2 space-y-6">
 
-          {/* User info */}
-          <section className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <User size={14} /> User Information
-            </h2>
-            <div className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
-              <p><span className="font-medium">Name:</span> {request.user?.name ?? '—'}</p>
-              <p><span className="font-medium">Email:</span> {request.user?.email ?? '—'}</p>
-              <p><span className="font-medium">Phone:</span> {request.contactPhone || request.user?.phone || '—'}</p>
-            </div>
-          </section>
-
-          {/* Pickup address */}
-          <section className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <MapPin size={14} /> Pickup Address
-            </h2>
-            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-              {request.pickupAddress || '—'}
-            </p>
-          </section>
-
-          {/* Materials */}
-          <section className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
-            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <Package size={14} /> Materials
-            </h2>
-            {items.length === 0 ? (
-              <p className="text-sm text-gray-400">No items listed.</p>
-            ) : (
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100 dark:border-gray-700">
-                    <th className="text-left py-2 text-xs font-semibold text-gray-400 uppercase">Type</th>
-                    <th className="text-left py-2 text-xs font-semibold text-gray-400 uppercase">Est. Weight</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {items.map((item, i) => (
-                    <tr key={i}>
-                      <td className="py-2 text-gray-700 dark:text-gray-300 font-medium">{item.materialType}</td>
-                      <td className="py-2 text-gray-500 dark:text-gray-400">{item.estimatedWeight} kg</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </section>
-
-          {/* Photos */}
-          {photos.length > 0 && (
-            <section className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm">
-              <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                <ImageIcon size={14} /> Photos
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* User info - Client Details */}
+            <section className="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700/50 p-6 shadow-sm">
+              <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-6 flex items-center gap-2">
+                <User size={16} className="text-green-600 dark:text-green-400" /> Client Details
               </h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {photos.map((photoPath, i) => (
-                  <a key={i} href={photoPath} target="_blank" rel="noopener noreferrer">
-                    <img
-                      src={photoPath}
-                      alt={`Scrap ${i + 1}`}
-                      className="w-24 h-24 object-cover rounded-xl border border-gray-200 dark:border-gray-600 hover:opacity-80 transition-opacity"
-                    />
-                  </a>
-                ))}
+              
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 bg-gray-900 dark:bg-gray-700 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                  {request.user?.name ? request.user.name.substring(0, 2).toUpperCase() : 'NA'}
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 dark:text-white text-lg leading-tight">
+                    {request.user?.name ?? 'Unknown Client'}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">ScrapBridge User</p>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 space-y-3">
+                <div className="grid grid-cols-3 items-center">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contact</span>
+                  <span className="col-span-2 text-sm text-gray-800 dark:text-gray-200 font-medium text-right">{request.contactPhone || request.user?.phone || '—'}</span>
+                </div>
+                <div className="grid grid-cols-3 items-center">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Email</span>
+                  <span className="col-span-2 text-sm text-gray-800 dark:text-gray-200 font-medium text-right truncate" title={request.user?.email}>{request.user?.email ?? '—'}</span>
+                </div>
               </div>
             </section>
-          )}
-        </div>
 
-        {/* ── RIGHT COLUMN (40%) — Action Panel ── */}
-        <div className="lg:col-span-2">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 shadow-sm sticky top-6">
-            <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-              Action Panel
-            </h2>
-
-            {/* ── PENDING: quote form ── */}
-            {request.status === 'PENDING' && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Quoted Price (₹) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="admin-price-input"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
-                    placeholder="e.g. 1200"
-                    className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Assign Collector
-                  </label>
-                  <select
-                    id="collector-select"
-                    value={collectorId}
-                    onChange={(e) => setCollectorId(e.target.value)}
-                    className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="">— Select collector —</option>
-                    {collectors.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                    Admin Notes (optional)
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Any notes for the user…"
-                    className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
-                  />
-                </div>
-
-                <div className="flex gap-2 pt-1">
-                  <button
-                    id="reject-request-btn"
-                    onClick={() => setRejectModal(true)}
-                    disabled={submitting}
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 border border-red-300 dark:border-red-700 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
-                  >
-                    <XCircle size={15} /> Reject
-                  </button>
-                  <button
-                    id="quote-assign-btn"
-                    onClick={handleQuote}
-                    disabled={submitting}
-                    className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors disabled:opacity-50"
-                  >
-                    {submitting ? <Loader size={15} className="animate-spin" /> : <CheckCircle size={15} />}
-                    Quote & Assign
-                  </button>
-                </div>
+            {/* Pickup address - Extraction Site */}
+            <section className="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700/50 p-6 shadow-sm flex flex-col">
+              <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-6 flex items-center gap-2">
+                <MapPin size={16} className="text-green-600 dark:text-green-400" /> Extraction Site
+              </h2>
+              
+              <div className="flex-1 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl p-6 flex flex-col items-center justify-center text-white mb-4 shadow-inner relative overflow-hidden group">
+                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <MapPin size={48} className="text-white drop-shadow-md mb-2" strokeWidth={1.5} fill="#dc2626" />
+                <span className="text-xs font-bold uppercase tracking-wider text-white/90 drop-shadow">Location</span>
               </div>
-            )}
 
-            {/* ── QUOTED: awaiting user response ── */}
-            {request.status === 'QUOTED' && (
-              <div className="space-y-3">
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 text-center">
-                  <Clock size={20} className="mx-auto text-blue-500 mb-2" />
-                  <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Awaiting user response</p>
-                  <p className="text-xs text-blue-500 dark:text-blue-400 mt-1">
-                    The user has been notified and will accept or reject the quote.
-                  </p>
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
-                  <p><span className="font-medium">Quoted Price:</span> {formatCurrency(request.adminPrice)}</p>
-                  <p><span className="font-medium">Assigned Collector:</span> {request.collector?.name ?? 'Unassigned'}</p>
-                  {request.adminNotes && (
-                    <p><span className="font-medium">Notes:</span> {request.adminNotes}</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* ── SCHEDULED ── */}
-            {request.status === 'SCHEDULED' && (
-              <div className="space-y-3">
-                <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-4">
-                  <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">Pickup Scheduled</p>
-                  <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
-                    <p><span className="font-medium">Date:</span> {formatDate(request.scheduledDate)}</p>
-                    <p><span className="font-medium">Collector:</span> {request.collector?.name ?? 'Unassigned'}</p>
-                    <p><span className="font-medium">Price:</span> {formatCurrency(request.adminPrice)}</p>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-400 text-center">Waiting for the collector to mark this as collected.</p>
-              </div>
-            )}
-
-            {/* ── COLLECTED: mark complete ── */}
-            {request.status === 'COLLECTED' && (
-              <div className="space-y-4">
-                <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-xl p-4">
-                  <p className="text-sm font-medium text-cyan-700 dark:text-cyan-300">Scrap has been collected.</p>
-                  <p className="text-xs text-cyan-500 dark:text-cyan-400 mt-1">
-                    Collector: {request.collector?.name ?? '—'} | Price: {formatCurrency(request.adminPrice)}
-                  </p>
-                </div>
-                <button
-                  id="complete-request-btn"
-                  onClick={() => setCompleteModal(true)}
-                  disabled={submitting}
-                  className="w-full flex items-center justify-center gap-2 py-3 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors disabled:opacity-50"
-                >
-                  {submitting ? <Loader size={15} className="animate-spin" /> : <CheckCircle size={15} />}
-                  Mark as Completed
-                </button>
-              </div>
-            )}
-
-            {/* ── COMPLETED ── */}
-            {request.status === 'COMPLETED' && (
-              <div className="space-y-3">
-                <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 text-center">
-                  <CheckCircle size={24} className="mx-auto text-emerald-500 mb-2" />
-                  <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Request Completed</p>
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                    Final price paid: {formatCurrency(request.adminPrice)}
-                  </p>
-                </div>
-                {request.receiptPath && (
-                  <p className="text-xs text-gray-400 text-center">
-                    Receipt: <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">{request.receiptPath}</code>
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* ── REJECTED ── */}
-            {request.status === 'REJECTED' && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
-                <p className="text-sm font-semibold text-red-700 dark:text-red-300 mb-1">Request Rejected</p>
-                <p className="text-xs text-red-500 dark:text-red-400">
-                  Reason: {request.rejectionReason || 'No reason provided.'}
+              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 flex-shrink-0">
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
+                  {request.pickupAddress || '—'}
                 </p>
               </div>
-            )}
+            </section>
           </div>
+
+          {/* Materials - Manifest & Yield */}
+          <section className="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700/50 p-6 sm:p-8 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+              <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                <Package size={16} className="text-green-600 dark:text-green-400" /> Manifest & Yield
+              </h2>
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Total: {items.reduce((sum, item) => sum + (item.estimatedWeight || 0), 0)} kg
+              </span>
+            </div>
+
+            {items.length === 0 ? (
+              <div className="text-center py-8 bg-gray-50 dark:bg-gray-900/50 rounded-2xl">
+                <p className="text-sm text-gray-500 dark:text-gray-400">No items listed in manifest.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b-2 border-gray-100 dark:border-gray-700/50">
+                      <th className="text-left pb-4 text-xs font-black text-gray-400 uppercase tracking-wider">Material Grade</th>
+                      <th className="text-left pb-4 text-xs font-black text-gray-400 uppercase tracking-wider">Weight</th>
+                      <th className="text-left pb-4 text-xs font-black text-gray-400 uppercase tracking-wider">Purity</th>
+                      <th className="text-right pb-4 text-xs font-black text-gray-400 uppercase tracking-wider">Est. Value</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50">
+                    {items.map((item, i) => (
+                      <tr key={i} className="group hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors">
+                        <td className="py-5 pr-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                              <Package size={14} className="text-gray-500 dark:text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-900 dark:text-white leading-tight">{item.materialType}</p>
+                              <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-0.5">Scrap Material</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-5 text-gray-700 dark:text-gray-300 font-medium whitespace-nowrap">{item.estimatedWeight} kg</td>
+                        <td className="py-5 whitespace-nowrap">
+                          <span className="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md">
+                            Standard
+                          </span>
+                        </td>
+                        <td className="py-5 text-right font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                          —
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Photos */}
+            {photos.length > 0 && (
+              <div className="mt-8 pt-8 border-t border-gray-100 dark:border-gray-700/50">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <ImageIcon size={14} /> Attached Media
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {photos.map((photoPath, i) => (
+                    <a key={i} href={photoPath} target="_blank" rel="noopener noreferrer" className="block relative group">
+                      <img
+                        src={photoPath}
+                        alt={`Scrap ${i + 1}`}
+                        className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-2xl border border-gray-200 dark:border-gray-600 group-hover:shadow-md transition-all duration-200 group-hover:ring-2 group-hover:ring-green-500 ring-offset-2 dark:ring-offset-gray-800"
+                      />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        </div>
+
+        {/* ── RIGHT COLUMN (1/3) — Action Panel ── */}
+        <div className="lg:col-span-1">
+          {request.status === 'COMPLETED' ? (
+            <div className="bg-[#0b6a41] rounded-[2rem] p-8 shadow-lg text-white sticky top-6 overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3"></div>
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/4"></div>
+              
+              <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+                <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm shadow-inner">
+                  <CheckCircle size={28} className="text-white" strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-black mb-1 tracking-tight">Request Completed</h2>
+                  <p className="text-green-100 text-xs font-medium">Funds transferred</p>
+                </div>
+                
+                <div className="w-full pt-4 pb-2">
+                  <p className="text-green-200 text-[10px] font-bold uppercase tracking-widest mb-1">Final Payout</p>
+                  <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-md">
+                    {formatCurrency(request.adminPrice).replace(/\.00$/, '')}
+                    <span className="text-xl sm:text-2xl text-green-200/80 font-bold drop-shadow-none">.00</span>
+                  </p>
+                </div>
+
+                
+                <div className="pt-2 text-[10px] text-green-200/80 font-medium tracking-wide">
+                  Transaction ID: TRX-{request.id.slice(0, 8).toUpperCase()}
+                </div>
+              </div>
+            </div>
+          ) : request.status === 'REJECTED' ? (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 rounded-[2rem] p-8 shadow-sm sticky top-6 text-center">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-800/50 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                <XCircle size={32} />
+              </div>
+              <h2 className="text-xl font-bold text-red-700 dark:text-red-400 mb-2">Request Rejected</h2>
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 text-sm text-red-600 dark:text-red-300 font-medium border border-red-100 dark:border-red-800">
+                {request.rejectionReason || 'No reason provided.'}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700/50 p-6 sm:p-8 shadow-sm sticky top-6">
+              <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-6 flex items-center gap-2">
+                Action Panel
+              </h2>
+
+              {/* ── PENDING: quote form ── */}
+              {request.status === 'PENDING' && (
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      Quoted Price (₹) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="admin-price-input"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      placeholder="e.g. 1200"
+                      className="w-full border-2 border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 focus:outline-none focus:border-green-500 focus:bg-white dark:focus:bg-gray-800 transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      Assign Collector
+                    </label>
+                    <select
+                      id="collector-select"
+                      value={collectorId}
+                      onChange={(e) => setCollectorId(e.target.value)}
+                      className="w-full border-2 border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 focus:outline-none focus:border-green-500 focus:bg-white dark:focus:bg-gray-800 transition-colors appearance-none"
+                    >
+                      <option value="">— Select collector —</option>
+                      {collectors.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      Admin Notes (optional)
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Any notes for the user…"
+                      className="w-full border-2 border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-medium text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 focus:outline-none focus:border-green-500 focus:bg-white dark:focus:bg-gray-800 transition-colors resize-none"
+                    />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button
+                      id="reject-request-btn"
+                      onClick={() => setRejectModal(true)}
+                      disabled={submitting}
+                      className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 rounded-xl transition-colors disabled:opacity-50"
+                    >
+                      <XCircle size={16} /> Reject
+                    </button>
+                    <button
+                      id="quote-assign-btn"
+                      onClick={handleQuote}
+                      disabled={submitting}
+                      className="flex-[2] flex items-center justify-center gap-2 py-3 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors disabled:opacity-50 shadow-sm hover:shadow"
+                    >
+                      {submitting ? <Loader size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                      Quote & Assign
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* ── QUOTED: awaiting user response ── */}
+              {request.status === 'QUOTED' && (
+                <div className="space-y-6">
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded-2xl p-6 text-center">
+                    <Clock size={28} className="mx-auto text-blue-500 mb-3" />
+                    <h3 className="text-base font-bold text-blue-800 dark:text-blue-300 mb-1">Awaiting Response</h3>
+                    <p className="text-xs text-blue-600/80 dark:text-blue-400/80 font-medium">
+                      The user has been notified to accept or reject the quote.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-5 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Quoted Price</span>
+                      <span className="text-base font-black text-gray-900 dark:text-white">{formatCurrency(request.adminPrice)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Collector</span>
+                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{request.collector?.name ?? 'Unassigned'}</span>
+                    </div>
+                    {request.adminNotes && (
+                      <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Notes</span>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{request.adminNotes}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ── SCHEDULED ── */}
+              {request.status === 'SCHEDULED' && (
+                <div className="space-y-6">
+                  <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/50 rounded-2xl p-6 text-center">
+                    <Clock size={28} className="mx-auto text-purple-500 mb-3" />
+                    <h3 className="text-base font-bold text-purple-800 dark:text-purple-300 mb-1">Pickup Scheduled</h3>
+                    <p className="text-xs text-purple-600/80 dark:text-purple-400/80 font-medium">
+                      Waiting for the collector to mark this as collected.
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-5 space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Date</span>
+                      <span className="text-sm font-bold text-gray-900 dark:text-white">{formatDate(request.scheduledDate)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Collector</span>
+                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{request.collector?.name ?? 'Unassigned'}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-3 border-t border-gray-200 dark:border-gray-700">
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Price</span>
+                      <span className="text-base font-black text-gray-900 dark:text-white">{formatCurrency(request.adminPrice)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── COLLECTED: mark complete ── */}
+              {request.status === 'COLLECTED' && (
+                <div className="space-y-6">
+                  <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-100 dark:border-cyan-800/50 rounded-2xl p-6 text-center">
+                    <Package size={28} className="mx-auto text-cyan-500 mb-3" />
+                    <h3 className="text-base font-bold text-cyan-800 dark:text-cyan-300 mb-1">Scrap Collected</h3>
+                    <p className="text-xs text-cyan-600/80 dark:text-cyan-400/80 font-medium">
+                      Ready for final completion.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Collector</p>
+                      <p className="text-sm font-bold text-gray-800 dark:text-gray-200">{request.collector?.name ?? '—'}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Price</p>
+                      <p className="text-sm font-black text-gray-900 dark:text-white">{formatCurrency(request.adminPrice)}</p>
+                    </div>
+                  </div>
+
+                  <button
+                    id="complete-request-btn"
+                    onClick={() => setCompleteModal(true)}
+                    disabled={submitting}
+                    className="w-full flex items-center justify-center gap-2 py-3.5 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors shadow-sm hover:shadow disabled:opacity-50"
+                  >
+                    {submitting ? <Loader size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                    Mark as Completed
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
