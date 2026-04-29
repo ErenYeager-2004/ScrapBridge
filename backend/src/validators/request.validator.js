@@ -18,7 +18,10 @@ export const createRequestValidator = [
 
 /**
  * quoteRequestValidator
- * Rules: adminPrice (required, numeric, > 0), collectorId (required).
+ * Rules:
+ *   adminPrice  – required, numeric, > 0
+ *   proposedDate – required, valid ISO 8601 date in the future
+ * Note: collectorId is NOT accepted here — it is assigned later in schedulePickup.
  */
 export const quoteRequestValidator = [
   body("adminPrice")
@@ -27,9 +30,22 @@ export const quoteRequestValidator = [
     .isFloat({ gt: 0 })
     .withMessage("adminPrice must be a number greater than 0."),
 
-  body("collectorId")
+  body("proposedDate")
     .notEmpty()
-    .withMessage("collectorId is required."),
+    .withMessage("proposedDate is required.")
+    .isISO8601()
+    .withMessage("proposedDate must be a valid ISO 8601 date.")
+    .custom((value) => {
+      // Compare date strings only (YYYY-MM-DD) so today is a valid pickup date.
+      // Using a full datetime comparison would reject today because the HTML date
+      // input sends midnight UTC, which is already in the past for IST users.
+      const proposedDateStr = value.slice(0, 10);
+      const todayStr = new Date().toISOString().slice(0, 10);
+      if (proposedDateStr < todayStr) {
+        throw new Error("proposedDate must be today or a future date.");
+      }
+      return true;
+    }),
 ];
 
 /**
@@ -45,21 +61,20 @@ export const respondValidator = [
 ];
 
 /**
- * scheduleValidator
- * Rules: scheduledDate (required, must be a valid ISO date in the future).
+ * schedulePickupValidator
+ * Rules:
+ *   collectorId   – required, non-empty string
+ *   scheduledDate – optional; if provided must be a valid ISO 8601 date
  */
-export const scheduleValidator = [
-  body("scheduledDate")
+export const schedulePickupValidator = [
+  body("collectorId")
     .notEmpty()
-    .withMessage("scheduledDate is required.")
+    .withMessage("collectorId is required."),
+
+  body("scheduledDate")
+    .optional({ checkFalsy: true })
     .isISO8601()
-    .withMessage("scheduledDate must be a valid ISO 8601 date.")
-    .custom((value) => {
-      if (new Date(value) <= new Date()) {
-        throw new Error("scheduledDate must be a future date.");
-      }
-      return true;
-    }),
+    .withMessage("scheduledDate must be a valid ISO 8601 date."),
 ];
 
 /**

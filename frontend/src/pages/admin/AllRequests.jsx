@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback} from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter, Eye, ClipboardList, Search } from 'lucide-react';
+import { Filter, Eye, ClipboardList, Search, RotateCcw } from 'lucide-react';
 import Pagination from '../../components/common/Pagination';
 import useFetch from '../../hooks/useFetch';
 import { getAllRequests } from '../../api/requests.api';
@@ -198,9 +198,10 @@ export default function AllRequests() {
           {(statusFilter || dateFrom || dateTo || search) && (
             <button
               onClick={() => { setStatusFilter(''); setDateFrom(''); setDateTo(''); setSearch(''); setCurrentPage(1);}}
-              className="text-sm text-red-500 hover:text-red-700 font-bold px-4 py-2.5 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors shrink-0"
+              title="Reset Filters"
+              className="p-2.5 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 bg-gray-100 dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors shrink-0"
             >
-              Clear
+              <RotateCcw size={18} />
             </button>
           )}
         </div>

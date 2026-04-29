@@ -38,7 +38,7 @@ import StatusBadge from '../../components/common/StatusBadge';
 import BarChart from '../../components/charts/BarChart';
 import DoughnutChart from '../../components/charts/DoughnutChart';
 import RecentFeedbackWidget from '../../components/admin/RecentFeedbackWidget';
-import { formatDate, formatCurrency, getRelativeTime } from '../../utils/formatters';
+import { formatCurrency, getRelativeTime } from '../../utils/formatters';
 
 // Utility functions for data formatting and chart preparation
 
@@ -256,7 +256,7 @@ export default function AdminDashboard() {
 
   const panelLoading = reqLoading || ordLoading;
 
-  // Calculated stat values for display
+  
 
   // Total Tonnage = sum of all weights in the Inventory (created from completed requests)
   const totalTonnage = (stats.materialDistribution ?? []).reduce(
@@ -283,8 +283,8 @@ export default function AdminDashboard() {
     hoverBackgroundColor: bgColors,
     borderRadius: Number.MAX_VALUE,
     borderSkipped: 'bottom',
-    barPercentage: 0.9, // Increase this (e.g., to 0.9 or 1.0) to make the bar thicker
-    categoryPercentage: 0.85, // Increase this (e.g., to 0.9 or 1.0) to decrease space between bars
+    barPercentage: 0.9, 
+    categoryPercentage: 0.85, 
   }];
 
   // Material distribution data preparation
@@ -297,7 +297,7 @@ export default function AdminDashboard() {
     : '0';
   const doughnutCenterSubLabel = totalMaterialKg >= 1000 ? 'Tons Total' : 'kg Total';
 
-  // Build unified urgent actions
+  
   // 1. Quote Requests
   const quoteRequests = allRequests
     .filter(r => r.status === 'PENDING')
@@ -332,7 +332,25 @@ export default function AdminDashboard() {
       actionType: 'link'
     }));
 
-  // 3. Unassigned Collection
+  // 3. Awaiting Collector Assignment (user accepted, no collector yet)
+  const awaitingAssignment = allRequests
+    .filter(r => r.status === 'ACCEPTED')
+    .map(r => ({
+      id: r.id,
+      createdAt: r.createdAt,
+      category: 'ASSIGNMENT',
+      title: `Awaiting Assignment: #${r.id.slice(0, 8).toUpperCase()}`,
+      subtitle: `${r.user?.name ?? 'User'} • Pickup: ${r.scheduledDate ? new Date(r.scheduledDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD'}`,
+      icon: UserCheck,
+      iconColor: 'text-teal-700 dark:text-teal-400',
+      iconBg: 'bg-teal-100 dark:bg-teal-900/30',
+      actionLabel: 'Assign Collector →',
+      actionLink: `/admin/requests/${r.id}`,
+      actionType: 'button',
+      buttonColor: 'bg-teal-600 hover:bg-teal-700 text-white'
+    }));
+
+  // 4. Unassigned Collection
   const unassignedCollections = allRequests
     .filter(r => r.status === 'SCHEDULED' && !r.collectorId)
     .map(r => ({
@@ -368,7 +386,7 @@ export default function AdminDashboard() {
       buttonColor: 'bg-blue-600 hover:bg-blue-700 text-white'
     }));
 
-  const allUrgentActions = [...quoteRequests, ...quotePending, ...unassignedCollections, ...newOrders]
+  const allUrgentActions = [...quoteRequests, ...quotePending, ...awaitingAssignment, ...unassignedCollections, ...newOrders]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const filteredUrgentActions = allUrgentActions.filter(action => {
@@ -535,6 +553,7 @@ export default function AdminDashboard() {
                 >
                   <option value="ALL">All Actions</option>
                   <option value="REQUESTS">Home Users</option>
+                  <option value="ASSIGNMENT">Awaiting Assignment ({awaitingAssignment.length})</option>
                   <option value="COLLECTIONS">Pickups</option>
                   <option value="ORDERS">Buyers</option>
                 </select>

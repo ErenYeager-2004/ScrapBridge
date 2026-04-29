@@ -19,12 +19,7 @@ import {
 } from 'lucide-react';
 import { AuthContext } from '../../context/AuthContext';
 
-const ROLE_LABELS = {
-  ADMIN:     'Admin',
-  HOME_USER: 'Home User',
-  COLLECTOR: 'Collector',
-  BUYER:     'Buyer',
-};
+
 
 const NAV_LINKS = {
   ADMIN: [
@@ -55,7 +50,7 @@ const NAV_LINKS = {
 
 export default function Sidebar() {
   const { user } = useContext(AuthContext);
-  const roleLabel = ROLE_LABELS[user?.role] ?? user?.role ?? 'User';
+
   const links = NAV_LINKS[user?.role] ?? [];
 
   return (
@@ -108,15 +103,6 @@ export default function Sidebar() {
             New Request
           </NavLink>
         )}
-        {user?.role === 'BUYER' && (
-          <NavLink 
-            to="/buyer/inventory"
-            className="flex items-center justify-center gap-2 w-full bg-[#1A7A4A] hover:bg-green-800 text-white px-4 py-3 rounded-full text-sm font-semibold transition-colors mb-4 shadow-sm"
-          >
-            <Plus size={18} />
-            Browse Inventory
-          </NavLink>
-        )}
         
         {/* Settings & Support placeholders */}
         <button className="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold text-slate-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-gray-100 transition-colors w-full text-left">
@@ -128,12 +114,7 @@ export default function Sidebar() {
           Support
         </button>
         
-        {/* User info footer */}
-        <div className="mt-4 px-2 flex flex-col">
-          <p className="text-xs text-slate-500 dark:text-gray-400 truncate">{user?.email}</p>
-          <p className="text-sm text-slate-800 dark:text-gray-100 font-semibold truncate">{user?.name}</p>
-          <p className="text-[10px] text-[#1A7A4A] font-bold uppercase tracking-wider mt-0.5">{roleLabel}</p>
-        </div>
+
       </div>
     </aside>
   );

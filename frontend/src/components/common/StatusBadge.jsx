@@ -6,6 +6,7 @@
 const STATUS_STYLES = {
   PENDING:   'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
   QUOTED:    'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+  ACCEPTED:  'bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-400',
   REJECTED:  'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
   SCHEDULED: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
   COLLECTED: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400',

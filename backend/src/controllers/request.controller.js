@@ -157,11 +157,12 @@ export const getRequestById = async (req, res) => {
 /**
  * PATCH /api/requests/:id/quote
  * Role: ADMIN
- * Sets adminPrice, adminNotes, collectorId; status → QUOTED.
+ * Sets adminPrice, adminNotes, proposedDate; status → QUOTED.
+ * collectorId is NOT written here — that happens only in schedulePickup after the user accepts.
  */
 export const quoteRequest = async (req, res) => {
   try {
-    const { adminPrice, adminNotes, collectorId } = req.body;
+    const { adminPrice, adminNotes, proposedDate } = req.body;
 
     const request = await prisma.scrapRequest.update({
       where: { id: req.params.id },
@@ -169,13 +170,13 @@ export const quoteRequest = async (req, res) => {
         status: "QUOTED",
         adminPrice: adminPrice !== undefined ? parseFloat(adminPrice) : undefined,
         adminNotes: adminNotes || null,
-        collectorId: collectorId || null,
+        scheduledDate: proposedDate ? new Date(proposedDate) : undefined,
       },
     });
 
     await createNotification(
       request.userId,
-      `Your scrap request #${request.id.slice(0, 8)} has been quoted at ₹${request.adminPrice}.`
+      "Your scrap pickup request has been quoted. Review the price and proposed date, then accept or reject."
     );
 
     return res.status(200).json({ request });
@@ -221,7 +222,8 @@ export const rejectRequest = async (req, res) => {
 /**
  * PATCH /api/requests/:id/respond
  * Role: HOME_USER
- * action: "accept" → SCHEDULED | "reject" → REJECTED
+ * action "accept" → status = ACCEPTED (collectorId remains null; admin assigns later)
+ * action "reject" → status = REJECTED, collectorId defensively cleared
  */
 export const respondToQuote = async (req, res) => {
   try {
@@ -248,15 +250,31 @@ export const respondToQuote = async (req, res) => {
       return res.status(409).json({ error: "Request is not in QUOTED status." });
     }
 
-    const newStatus = action === "accept" ? "SCHEDULED" : "REJECTED";
+    if (action === "accept") {
+      // Move to ACCEPTED — admin will assign collector next via schedulePickup
+      const request = await prisma.scrapRequest.update({
+        where: { id: req.params.id },
+        data: { status: "ACCEPTED" },
+      });
 
+      await notifyAdmins(
+        "A user has accepted a quote. Please assign a collector for the scheduled pickup."
+      );
+
+      return res.status(200).json({ request });
+    }
+
+    // action === "reject"
     const request = await prisma.scrapRequest.update({
       where: { id: req.params.id },
-      data: { status: newStatus },
+      data: {
+        status: "REJECTED",
+        collectorId: null, // defensive clear
+      },
     });
 
     await notifyAdmins(
-      `Home user ${req.user.id.slice(0, 8)} ${action}ed the quote on request #${request.id.slice(0, 8)}.`
+      `A user has rejected a quote for request ${request.id}.`
     );
 
     return res.status(200).json({ request });
@@ -271,41 +289,80 @@ export const respondToQuote = async (req, res) => {
 /**
  * PATCH /api/requests/:id/schedule
  * Role: ADMIN
- * Sets scheduledDate; status → SCHEDULED.
+ * Assigns a collector and moves status → SCHEDULED.
+ * This is the ONLY place collectorId is ever written to the database.
+ * Requires request to be in ACCEPTED status (user has accepted the quote).
+ * Optionally accepts a new scheduledDate; otherwise keeps the date set during quoteRequest.
  */
-export const scheduleRequest = async (req, res) => {
+export const schedulePickup = async (req, res) => {
   try {
-    const { scheduledDate } = req.body;
+    const { collectorId, scheduledDate } = req.body;
 
-    if (!scheduledDate) {
-      return res.status(400).json({ error: "scheduledDate is required." });
+    if (!collectorId) {
+      return res.status(400).json({ error: "collectorId is required." });
     }
+
+    // Verify the request exists and is in ACCEPTED status
+    const existing = await prisma.scrapRequest.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: "Request not found." });
+    }
+
+    if (existing.status !== "ACCEPTED") {
+      return res
+        .status(400)
+        .json({ error: "Request must be in ACCEPTED status to assign a collector." });
+    }
+
+    // Validate that collectorId belongs to a real COLLECTOR user
+    const collectorUser = await prisma.user.findUnique({
+      where: { id: collectorId },
+    });
+
+    if (!collectorUser || collectorUser.role !== "COLLECTOR") {
+      return res.status(400).json({ error: "Invalid collector ID." });
+    }
+
+    // Determine final scheduled date: use new value if provided, otherwise keep existing
+    const finalScheduledDate = scheduledDate
+      ? new Date(scheduledDate)
+      : existing.scheduledDate;
 
     const request = await prisma.scrapRequest.update({
       where: { id: req.params.id },
       data: {
-        scheduledDate: new Date(scheduledDate),
+        collectorId,
         status: "SCHEDULED",
+        scheduledDate: finalScheduledDate,
       },
     });
+
+    const formattedDate = finalScheduledDate
+      ? new Date(finalScheduledDate).toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })
+      : "a date to be confirmed";
 
     // Notify the home user
     await createNotification(
       request.userId,
-      `Your pickup for request #${request.id.slice(0, 8)} has been scheduled on ${scheduledDate}.`
+      `Your pickup has been scheduled. A collector has been assigned and will arrive on ${formattedDate}.`
     );
 
-    // Notify the assigned collector (if any)
-    if (request.collectorId) {
-      await createNotification(
-        request.collectorId,
-        `You have been assigned to pickup #${request.id.slice(0, 8)} scheduled on ${scheduledDate}.`
-      );
-    }
+    // Notify the assigned collector
+    await createNotification(
+      collectorId,
+      `You have been assigned a new pickup. Pickup address: ${existing.pickupAddress}. Scheduled date: ${formattedDate}.`
+    );
 
     return res.status(200).json({ request });
   } catch (err) {
-    console.error("[scheduleRequest]", err);
+    console.error("[schedulePickup]", err);
     return res.status(500).json({ error: "Internal server error." });
   }
 };
@@ -451,24 +508,36 @@ export const completeRequest = async (req, res) => {
 /**
  * GET /api/requests/assigned
  * Role: COLLECTOR
- * Returns requests where collectorId = req.user.id
- * Supports optional ?status= filter
+ * Returns requests assigned to this collector that are in an active/visible status.
+ * Only returns SCHEDULED, COLLECTED, or COMPLETED — never QUOTED or ACCEPTED,
+ * which are admin-only workflow states where no collector has been assigned yet.
+ * Supports optional ?status= to further narrow within the allowed set.
  */
 export const getAssignedPickups = async (req, res) => {
   try {
-    const where = { collectorId: req.user.id };
-    if (req.query.status) where.status = req.query.status;
+    // Base filter: only statuses a collector should ever see
+    const allowedStatuses = ["SCHEDULED", "COLLECTED", "COMPLETED"];
+
+    const where = {
+      collectorId: req.user.id,
+      status: { in: allowedStatuses },
+    };
+
+    // Optional query-param narrows within the allowed set
+    if (req.query.status && allowedStatuses.includes(req.query.status)) {
+      where.status = req.query.status;
+    }
 
     const requests = await prisma.scrapRequest.findMany({
       where,
       include: { user: true, collector: true },
-      orderBy: { scheduledDate: 'asc' },
+      orderBy: { scheduledDate: "asc" },
     });
 
     return res.status(200).json({ requests });
   } catch (err) {
-    console.error('[getAssignedPickups]', err);
-    return res.status(500).json({ error: 'Internal server error.' });
+    console.error("[getAssignedPickups]", err);
+    return res.status(500).json({ error: "Internal server error." });
   }
 };
 

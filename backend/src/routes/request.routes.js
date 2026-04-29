@@ -12,7 +12,7 @@ import {
   createRequestValidator,
   quoteRequestValidator,
   respondValidator,
-  scheduleValidator,
+  schedulePickupValidator,
   rejectValidator,
 } from "../validators/request.validator.js";
 
@@ -24,7 +24,7 @@ import {
   quoteRequest,
   rejectRequest,
   respondToQuote,
-  scheduleRequest,
+  schedulePickup,
   collectRequest,
   completeRequest,
   getAssignedPickups,
@@ -90,13 +90,13 @@ router.patch(
   rejectRequest
 );
 
-// Set / update scheduled pickup date
+// Assign a collector and confirm the pickup date (request must be ACCEPTED)
 router.patch(
   "/:id/schedule",
   requireRole("ADMIN"),
-  scheduleValidator,
+  schedulePickupValidator,
   validate,
-  scheduleRequest
+  schedulePickup
 );
 
 // Mark request as fully completed and create inventory records

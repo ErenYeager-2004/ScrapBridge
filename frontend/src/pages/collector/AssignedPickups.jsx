@@ -14,7 +14,10 @@ export default function AssignedPickups() {
 
   const fetchPickups = useCallback(() => getAssignedPickups(), []);
   const { data, loading, error } = useFetch(fetchPickups);
-  const requests = data?.requests ?? [];
+  
+  const requests = useMemo(() => {
+    return (data?.requests ?? []).filter(r => r.status === 'SCHEDULED' || r.status === 'COLLECTED');
+  }, [data]);
 
   const filtered = useMemo(() => {
     if (!statusFilter) return requests;
@@ -141,7 +144,7 @@ export default function AssignedPickups() {
 
         {!loading && !error && (
           <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 text-xs text-gray-400">
-            Showing {filtered.length} of {requests.length} assigned pickups
+            Showing {filtered.length} of {requests.length} active pickups
           </div>
         )}
       </div>

@@ -62,12 +62,18 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Verify email alert */}
           {verifyAlert && (
-            <div className="flex items-start gap-2 px-4 py-3 bg-yellow-900/40 border border-yellow-500/50 rounded-lg text-yellow-300 text-sm">
-              <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-              </svg>
-              <span>{verifyAlert} Please check your inbox for the verification link.</span>
+            <div className="px-4 py-3 bg-yellow-900/40 border border-yellow-500/50 rounded-lg text-sm">
+              <div className="flex items-start gap-2 text-yellow-300 mb-2">
+                <svg className="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <span className="font-semibold">Email verification required</span>
+              </div>
+              <p className="text-yellow-200/80 pl-6">
+                Please check your inbox and click the verification link we sent you before logging in.
+                Check your spam folder if you don't see it.
+              </p>
             </div>
           )}
           <div>

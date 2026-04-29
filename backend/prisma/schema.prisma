@@ -17,10 +17,11 @@ enum Role {
 enum RequestStatus {
   PENDING
   QUOTED
-  REJECTED
+  ACCEPTED   // user has accepted the quote; awaiting admin scheduling
   SCHEDULED
   COLLECTED
   COMPLETED
+  REJECTED   // can occur from PENDING, QUOTED, or ACCEPTED
 }
 
 enum MaterialType {

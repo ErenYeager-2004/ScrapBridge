@@ -2,11 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { verifyEmail } from '../../api/auth.api';
 
-/**
- * Compute the correct initial status synchronously from URL params.
- * This avoids calling setState inside a useEffect body (which can cause
- * cascading renders and triggers the React Compiler lint rule).
- */
+
 function getInitialStatus(searchParams) {
   if (searchParams.get('success') === 'true') return 'success';
   if (searchParams.get('token')) return 'loading'; // token present → will verify
@@ -21,13 +17,17 @@ export default function VerifyEmail() {
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    // Only run the async API call when there is a token to verify.
-    // The ?success=true and "no token" cases are already handled by the initializer.
     const token = searchParams.get('token');
     if (!token) return;
 
     verifyEmail(token)
-      .then(() => setStatus('success'))
+      .then(() => {
+        // Notify the Register tab (or any other tab listening) that verification succeeded
+        const channel = new BroadcastChannel('scrapbridge-auth');
+        channel.postMessage({ type: 'EMAIL_VERIFIED' });
+        channel.close();
+        setStatus('success');
+      })
       .catch((err) => {
         setErrorMsg(
           err?.response?.data?.message ?? 'Invalid or expired verification link.'
@@ -66,7 +66,10 @@ export default function VerifyEmail() {
             </div>
             <div>
               <p className="text-lg font-semibold text-white">Email Verified!</p>
-              <p className="text-gray-400 text-sm mt-1">You can now log in to your account.</p>
+              <p className="text-gray-400 text-sm mt-1">
+                Your account is active. You can close this tab and sign in from the other tab,
+                or click below.
+              </p>
             </div>
             <Link
               to="/login"

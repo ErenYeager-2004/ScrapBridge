@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, MapPin, Package, Image as ImageIcon, CheckCircle, XCircle, Clock, Loader } from 'lucide-react';
+import { ArrowLeft, User, MapPin, Package, Image as ImageIcon, CheckCircle, XCircle, Clock, Loader, CalendarDays, UserCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import useFetch from '../../hooks/useFetch';
-import { getRequestById, quoteRequest, rejectRequest, completeRequest } from '../../api/requests.api';
+import { getRequestById, quoteRequest, rejectRequest, completeRequest, schedulePickup } from '../../api/requests.api';
 import StatusBadge from '../../components/common/StatusBadge';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import { formatDate, formatCurrency } from '../../utils/formatters';
@@ -18,47 +18,79 @@ export default function AdminRequestDetail() {
   const { data, loading, error, refetch } = useFetch(fetchRequest);
   const request = data?.request ?? null;
 
-  /* ── collectors list ── */
+  /* ── collectors list (fetched only when status=ACCEPTED) ── */
   const [collectors, setCollectors] = useState([]);
   useEffect(() => {
-    api.get('/collectors').then((res) => setCollectors(res.data.collectors ?? [])).catch(() => {});
-  }, []);
+    if (request?.status === 'ACCEPTED') {
+      api.get('/collectors').then((res) => setCollectors(res.data.collectors ?? [])).catch(() => {});
+    }
+  }, [request?.status]);
 
-  /* ── quote form state ── */
+  /* ── PENDING quote form state ── */
   const [price, setPrice] = useState('');
-  const [collectorId, setCollectorId] = useState('');
+  const [proposedDate, setProposedDate] = useState('');
   const [notes, setNotes] = useState('');
+
+  /* ── ACCEPTED assign form state ── */
+  const [collectorId, setCollectorId] = useState('');
+  const [assignDate, setAssignDate] = useState('');
+
   const [submitting, setSubmitting] = useState(false);
 
-  /* ── reject modal ── */
+  /* ── reject / complete modals ── */
   const [rejectModal, setRejectModal] = useState(false);
-
-  /* ── complete confirm ── */
   const [completeModal, setCompleteModal] = useState(false);
 
-  /* ── populate form when request loads ── */
+  /* ── populate form fields when request loads ── */
   const [prevRequest, setPrevRequest] = useState(null);
   if (request && request !== prevRequest) {
     setPrevRequest(request);
     setPrice(request.adminPrice ?? '');
-    setCollectorId(request.collectorId ?? '');
     setNotes(request.adminNotes ?? '');
+    // Pre-fill assignDate from existing scheduledDate for ACCEPTED panel
+    if (request.scheduledDate) {
+      setAssignDate(request.scheduledDate.slice(0, 10));
+    }
   }
 
+  /* ── today's date string for min attribute ── */
+  const todayStr = new Date().toISOString().slice(0, 10);
+
   /* ── handlers ── */
-  const handleQuote = async () => {
+  const handleQuote = async (e) => {
+    e.preventDefault();
     if (!price) return toast.error('Please enter a price.');
+    if (!proposedDate) return toast.error('Please select a proposed pickup date.');
     setSubmitting(true);
     try {
       await quoteRequest(id, {
         adminPrice: parseFloat(price),
-        collectorId: collectorId || undefined,
+        proposedDate: new Date(proposedDate).toISOString(),
         adminNotes: notes || undefined,
       });
-      toast.success('Quote submitted successfully!');
+      toast.success('Quote sent to user.');
       refetch();
     } catch (err) {
       toast.error(err?.response?.data?.error ?? 'Failed to submit quote.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAssign = async (e) => {
+    e.preventDefault();
+    if (!collectorId) return toast.error('Please select a collector.');
+    if (!assignDate) return toast.error('Please confirm a pickup date.');
+    setSubmitting(true);
+    try {
+      await schedulePickup(id, {
+        collectorId,
+        scheduledDate: new Date(assignDate).toISOString(),
+      });
+      toast.success('Collector assigned. Pickup is now scheduled.');
+      refetch();
+    } catch (err) {
+      toast.error(err?.response?.data?.error ?? 'Failed to assign collector.');
     } finally {
       setSubmitting(false);
     }
@@ -317,9 +349,9 @@ export default function AdminRequestDetail() {
                 Action Panel
               </h2>
 
-              {/* ── PENDING: quote form ── */}
+              {/* ── PENDING: quote form (no collector) ── */}
               {request.status === 'PENDING' && (
-                <div className="space-y-5">
+                <form onSubmit={handleQuote} className="space-y-5">
                   <div>
                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                       Quoted Price (₹) <span className="text-red-500">*</span>
@@ -338,19 +370,16 @@ export default function AdminRequestDetail() {
 
                   <div>
                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                      Assign Collector
+                      Proposed Pickup Date <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      id="collector-select"
-                      value={collectorId}
-                      onChange={(e) => setCollectorId(e.target.value)}
-                      className="w-full border-2 border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 focus:outline-none focus:border-green-500 focus:bg-white dark:focus:bg-gray-800 transition-colors appearance-none"
-                    >
-                      <option value="">— Select collector —</option>
-                      {collectors.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
+                    <input
+                      id="proposed-date-input"
+                      type="date"
+                      min={todayStr}
+                      value={proposedDate}
+                      onChange={(e) => setProposedDate(e.target.value)}
+                      className="w-full border-2 border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 focus:outline-none focus:border-green-500 focus:bg-white dark:focus:bg-gray-800 transition-colors"
+                    />
                   </div>
 
                   <div>
@@ -369,23 +398,76 @@ export default function AdminRequestDetail() {
                   <div className="flex flex-col sm:flex-row gap-3 pt-2">
                     <button
                       id="reject-request-btn"
+                      type="button"
                       onClick={() => setRejectModal(true)}
                       disabled={submitting}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 rounded-xl transition-colors disabled:opacity-50"
+                      className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold text-red-600 dark:text-red-400 border-2 border-red-200 dark:border-red-800/60 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors disabled:opacity-50"
                     >
                       <XCircle size={16} /> Reject
                     </button>
                     <button
-                      id="quote-assign-btn"
-                      onClick={handleQuote}
+                      id="send-quote-btn"
+                      type="submit"
                       disabled={submitting}
                       className="flex-[2] flex items-center justify-center gap-2 py-3 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors disabled:opacity-50 shadow-sm hover:shadow"
                     >
-                      {submitting ? <Loader size={16} className="animate-spin" /> : <CheckCircle size={16} />}
-                      Quote & Assign
+                      {submitting ? <Loader size={16} className="animate-spin" /> : <CalendarDays size={16} />}
+                      Send Quote
                     </button>
                   </div>
-                </div>
+                </form>
+              )}
+
+              {/* ── ACCEPTED: assign collector ── */}
+              {request.status === 'ACCEPTED' && (
+                <form onSubmit={handleAssign} className="space-y-5">
+                  <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800/50 rounded-2xl p-4">
+                    <p className="text-xs font-semibold text-teal-700 dark:text-teal-300 leading-relaxed">
+                      The user has accepted the quote. Assign a collector to confirm the pickup.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      Assign Collector <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      id="collector-select"
+                      value={collectorId}
+                      onChange={(e) => setCollectorId(e.target.value)}
+                      className="w-full border-2 border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 focus:outline-none focus:border-green-500 focus:bg-white dark:focus:bg-gray-800 transition-colors appearance-none"
+                    >
+                      <option value="">Select a collector</option>
+                      {collectors.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}{c.phone ? ` — ${c.phone}` : ''}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      Confirm Pickup Date <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="assign-date-input"
+                      type="date"
+                      min={todayStr}
+                      value={assignDate}
+                      onChange={(e) => setAssignDate(e.target.value)}
+                      className="w-full border-2 border-gray-100 dark:border-gray-700 rounded-xl px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 focus:outline-none focus:border-green-500 focus:bg-white dark:focus:bg-gray-800 transition-colors"
+                    />
+                  </div>
+
+                  <button
+                    id="assign-schedule-btn"
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full flex items-center justify-center gap-2 py-3.5 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors disabled:opacity-50 shadow-sm hover:shadow"
+                  >
+                    {submitting ? <Loader size={16} className="animate-spin" /> : <UserCheck size={16} />}
+                    Assign &amp; Schedule
+                  </button>
+                </form>
               )}
 
               {/* ── QUOTED: awaiting user response ── */}
@@ -393,7 +475,7 @@ export default function AdminRequestDetail() {
                 <div className="space-y-6">
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded-2xl p-6 text-center">
                     <Clock size={28} className="mx-auto text-blue-500 mb-3" />
-                    <h3 className="text-base font-bold text-blue-800 dark:text-blue-300 mb-1">Awaiting Response</h3>
+                    <h3 className="text-base font-bold text-blue-800 dark:text-blue-300 mb-1">Awaiting User Response</h3>
                     <p className="text-xs text-blue-600/80 dark:text-blue-400/80 font-medium">
                       The user has been notified to accept or reject the quote.
                     </p>
@@ -405,8 +487,8 @@ export default function AdminRequestDetail() {
                       <span className="text-base font-black text-gray-900 dark:text-white">{formatCurrency(request.adminPrice)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Collector</span>
-                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{request.collector?.name ?? 'Unassigned'}</span>
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Proposed Date</span>
+                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{request.scheduledDate ? formatDate(request.scheduledDate) : '—'}</span>
                     </div>
                     {request.adminNotes && (
                       <div className="pt-3 border-t border-gray-200 dark:border-gray-700">

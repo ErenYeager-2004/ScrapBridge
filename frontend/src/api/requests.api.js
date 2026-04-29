@@ -35,9 +35,9 @@ export const getRequestById = (id) =>
   api.get(`/requests/${id}`);
 
 /**
- * Sets a price quote and assigns a collector for a pending request (Admin only).
+ * Sets a price quote with a proposed pickup date for a pending request (Admin only).
  * @param {string} id
- * @param {{ quotedPrice: number, collectorId: string }} data
+ * @param {{ adminPrice: number, adminNotes?: string, proposedDate: string }} data
  */
 export const quoteRequest = (id, data) =>
   api.patch(`/requests/${id}/quote`, data);
@@ -58,13 +58,14 @@ export const rejectRequest = (id, data) =>
 export const respondToQuote = (id, action) =>
   api.patch(`/requests/${id}/respond`, { action });
 
+// scheduleRequest renamed to schedulePickup — update all callers.
 /**
- * Schedules a pickup date for a request (Admin only).
+ * Assigns a collector and finalises scheduling for an ACCEPTED request (Admin only).
  * @param {string} id
- * @param {string} scheduledDate - ISO date string
+ * @param {{ collectorId: string, scheduledDate?: string }} data
  */
-export const scheduleRequest = (id, scheduledDate) =>
-  api.patch(`/requests/${id}/schedule`, { scheduledDate });
+export const schedulePickup = (id, data) =>
+  api.patch(`/requests/${id}/schedule`, data);
 
 /**
  * Marks a request as collected (Collector only).
