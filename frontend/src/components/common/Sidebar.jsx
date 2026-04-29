@@ -1,7 +1,6 @@
 import { useContext } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
-  Recycle,
   LayoutDashboard,
   ClipboardList,
   Package,
@@ -48,10 +47,25 @@ const NAV_LINKS = {
   ],
 };
 
+const SETTINGS_ROUTES = {
+  ADMIN:     '/admin/settings',
+  HOME_USER: '/user/settings',
+  COLLECTOR: '/collector/settings',
+  BUYER:     '/buyer/settings',
+};
+
+const SUPPORT_ROUTES = {
+  HOME_USER: '/user/support',
+  COLLECTOR: '/collector/support',
+  BUYER:     '/buyer/support',
+};
+
 export default function Sidebar() {
   const { user } = useContext(AuthContext);
 
-  const links = NAV_LINKS[user?.role] ?? [];
+  const links        = NAV_LINKS[user?.role] ?? [];
+  const settingsPath = SETTINGS_ROUTES[user?.role] ?? '#';
+  const supportPath  = SUPPORT_ROUTES[user?.role];
 
   return (
     <aside className="fixed top-0 left-0 h-screen w-64 bg-[#F8F9FA] dark:bg-gray-900 text-slate-800 dark:text-gray-100 flex flex-col z-40 border-r border-gray-200 dark:border-gray-800 transition-colors">
@@ -103,18 +117,44 @@ export default function Sidebar() {
             New Request
           </NavLink>
         )}
-        
-        {/* Settings & Support placeholders */}
-        <button className="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold text-slate-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-gray-100 transition-colors w-full text-left">
-          <Settings size={18} strokeWidth={2} />
-          Settings
-        </button>
-        <button className="flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold text-slate-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-gray-100 transition-colors w-full text-left">
-          <HelpCircle size={18} strokeWidth={2} />
-          Support
-        </button>
-        
 
+        {/* Settings & Support */}
+        <NavLink
+          to={settingsPath}
+          className={({ isActive }) =>
+            `flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors w-full text-left ${
+              isActive
+                ? 'bg-[#E8F3EC] dark:bg-[#1A7A4A] text-[#1A7A4A] dark:text-white'
+                : 'text-slate-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-gray-100'
+            }`
+          }
+        >
+          {({ isActive }) => (
+            <>
+              <Settings size={18} strokeWidth={isActive ? 2.5 : 2} />
+              Settings
+            </>
+          )}
+        </NavLink>
+        {supportPath && (
+          <NavLink
+            to={supportPath}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2.5 rounded-full text-sm font-semibold transition-colors w-full text-left ${
+                isActive
+                  ? 'bg-[#E8F3EC] dark:bg-[#1A7A4A] text-[#1A7A4A] dark:text-white'
+                  : 'text-slate-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-slate-900 dark:hover:text-gray-100'
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <HelpCircle size={18} strokeWidth={isActive ? 2.5 : 2} />
+                Support
+              </>
+            )}
+          </NavLink>
+        )}
       </div>
     </aside>
   );

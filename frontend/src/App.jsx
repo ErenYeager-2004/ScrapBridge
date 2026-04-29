@@ -48,6 +48,10 @@ import BuyerDashboard from './pages/buyer/BuyerDashboard';
 import BrowseInventory from './pages/buyer/BrowseInventory';
 import OrderHistory from './pages/buyer/OrderHistory';
 
+// Shared pages
+import Settings from './pages/shared/Settings';
+import Support from './pages/shared/Support';
+
 export default function App() {
   return (
     <DarkModeProvider>
@@ -88,6 +92,7 @@ export default function App() {
                   <Route path="users/:id" element={<UserDetail />} />
                   <Route path="ledger" element={<LedgerEntries />} />
                   <Route path="export" element={<ExportTools />} />
+                  <Route path="settings" element={<Settings />} />
                 </Route>
               </Route>
             </Route>
@@ -101,6 +106,8 @@ export default function App() {
                   <Route path="new-request" element={<NewRequest />} />
                   <Route path="requests" element={<RequestHistory />} />
                   <Route path="requests/:id" element={<UserRequestDetail />} />
+                  <Route path="settings" element={<Settings />} />
+                  <Route path="support" element={<Support />} />
                 </Route>
               </Route>
             </Route>
@@ -114,6 +121,8 @@ export default function App() {
                   <Route path="pickups" element={<AssignedPickups />} />
                   <Route path="pickups/:id" element={<PickupDetail />} />
                   <Route path="history" element={<CollectorHistory />} />
+                  <Route path="settings" element={<Settings />} />
+                  <Route path="support" element={<Support />} />
                 </Route>
               </Route>
             </Route>
@@ -126,6 +135,8 @@ export default function App() {
                   <Route path="dashboard" element={<BuyerDashboard />} />
                   <Route path="inventory" element={<BrowseInventory />} />
                   <Route path="orders" element={<OrderHistory />} />
+                  <Route path="settings" element={<Settings />} />
+                  <Route path="support" element={<Support />} />
                 </Route>
               </Route>
             </Route>

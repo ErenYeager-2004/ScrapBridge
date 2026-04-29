@@ -43,3 +43,17 @@ export const resetPassword = (token, newPassword) =>
  */
 export const verifyEmail = (token) =>
   axios.get(`/api/auth/verify-email?token=${token}`);
+
+/**
+ * Update the authenticated user's profile (name and phone).
+ * @param {{ name: string, phone?: string }} data
+ */
+export const updateProfile = (data) =>
+  api.patch('/auth/profile', data);
+
+/**
+ * Change the authenticated user's password.
+ * @param {{ currentPassword: string, newPassword: string }} data
+ */
+export const changePassword = (data) =>
+  api.post('/auth/change-password', data);

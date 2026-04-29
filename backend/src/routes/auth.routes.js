@@ -8,6 +8,8 @@ import {
   forgotPassword,
   resetPassword,
   verifyEmail,
+  updateProfile,
+  changePassword,
 } from "../controllers/auth.controller.js";
 
 import { verifyToken } from "../middleware/auth.middleware.js";
@@ -52,5 +54,11 @@ router.post("/forgot-password", forgotPassword);
 
 // Complete the password-reset flow (token + new password)
 router.post("/reset-password", resetPassword);
+
+// Update authenticated user's profile (name, phone)
+router.patch("/profile", verifyToken, updateProfile);
+
+// Change password for authenticated user (verifies current password)
+router.post("/change-password", verifyToken, changePassword);
 
 export default router;

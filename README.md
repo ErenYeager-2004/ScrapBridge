@@ -38,30 +38,24 @@ cd ScrapBridge
 
 ## 🗄️ Step 2 — Set Up the Database
 
-This project uses a **dedicated MySQL user** called `scrapbridge` (not `root`). You must create this user and database manually before running anything. The Prisma schema handles table creation — it does **not** create the MySQL user.
+This project connects as the MySQL **`root`** user with no password (the XAMPP default). You only need to create the database — no user creation is needed.
 
 ### Option A — Using phpMyAdmin (XAMPP)
 
 1. **Start XAMPP** — start the **Apache** and **MySQL** services from the XAMPP Control Panel.
 2. Open your browser and go to: `http://localhost/phpmyadmin`
-3. Click the **SQL** tab at the top and paste the following commands, then click **Go**:
+3. Click the **SQL** tab at the top, paste the following, and click **Go**:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS scrapbridge CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-CREATE USER IF NOT EXISTS 'scrapbridge'@'localhost' IDENTIFIED BY 'scrap123';
-
-GRANT ALL PRIVILEGES ON scrapbridge.* TO 'scrapbridge'@'localhost';
-
-FLUSH PRIVILEGES;
 ```
 
 ### Option B — Using MySQL Command Line
 
-Open a terminal and log in as root:
+Open a terminal and log in as root (no password — just press Enter when prompted):
 
 ```bash
-mysql -u root -p
+mysql -u root
 ```
 
 Then run:
@@ -69,16 +63,10 @@ Then run:
 ```sql
 CREATE DATABASE IF NOT EXISTS scrapbridge CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-CREATE USER IF NOT EXISTS 'scrapbridge'@'localhost' IDENTIFIED BY 'scrap123';
-
-GRANT ALL PRIVILEGES ON scrapbridge.* TO 'scrapbridge'@'localhost';
-
-FLUSH PRIVILEGES;
-
 EXIT;
 ```
 
-> **Note:** The password `scrap123` matches what is already set in the backend `.env` file. If you change it here, update `.env` accordingly.
+> **Note:** If your MySQL `root` account has a password set, update `DATABASE_URL` in `backend/.env` to `mysql://root:yourpassword@localhost:3306/scrapbridge`.
 
 ---
 
@@ -117,7 +105,7 @@ ScrapBridge sends real emails for **email verification** and **password reset**.
 Open `backend/.env` in any text editor. It should look like this:
 
 ```env
-DATABASE_URL="mysql://scrapbridge:scrap123@localhost:3306/scrapbridge"
+DATABASE_URL="mysql://root@localhost:3306/scrapbridge"
 JWT_SECRET="ReddyBhai"
 EMAIL_USER="your_email"
 EMAIL_PASS="your_email_app_password"
@@ -134,7 +122,7 @@ EMAIL_PASS="abcdefghijklmnop"
 
 > Replace the values above with your actual Gmail address and the 16-character app password (no spaces).
 >
-> Leave everything else as-is unless you changed the database password in Step 2.
+> The `DATABASE_URL` uses `root` with no password — the XAMPP default. If your root account has a password, add it as `mysql://root:yourpassword@localhost:3306/scrapbridge`.
 
 ---
 
@@ -260,8 +248,8 @@ Open **http://localhost:5173** in your browser and log in using any of the demo 
 **MySQL connection refused?**
 → Make sure XAMPP MySQL service is running, or your MySQL server is started.
 
-**"Access denied for user 'scrapbridge'@'localhost'"?**
-→ Re-run the SQL commands from Step 2 to ensure the user exists with the correct password.
+**"Access denied for user 'root'@'localhost'"?**
+→ Your MySQL root account may have a password set. Update `DATABASE_URL` in `backend/.env` to include it: `mysql://root:yourpassword@localhost:3306/scrapbridge`.
 
 **Emails not sending?**
 → Double-check `EMAIL_USER` and `EMAIL_PASS` in `backend/.env`. Make sure 2-Step Verification is enabled and the App Password was generated from the correct Google account.

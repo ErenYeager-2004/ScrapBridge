@@ -267,3 +267,80 @@ export const resetPassword = async (req, res) => {
     return res.status(500).json({ error: "Internal server error." });
   }
 };
+
+// ── updateProfile ──────────────────────────────────────────────────────────────
+
+/**
+ * PATCH /api/auth/profile
+ * Allows an authenticated user to update their name and phone number.
+ * Email is intentionally excluded (changing email would require re-verification).
+ */
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, phone } = req.body;
+
+    if (!name || name.trim().length < 2) {
+      return res.status(400).json({ error: "Name must be at least 2 characters." });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        name: name.trim(),
+        phone: phone?.trim() || null,
+      },
+    });
+
+    return res.status(200).json({ message: "Profile updated.", user: excludePassword(updated) });
+  } catch (err) {
+    console.error("[updateProfile]", err);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+};
+
+// ── changePassword ─────────────────────────────────────────────────────────────
+
+/**
+ * POST /api/auth/change-password
+ * Verifies the user's current password, then updates to the new one.
+ * Requires authentication (verifyToken). No email round-trip needed.
+ */
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Both current and new password are required." });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: "New password must be at least 6 characters." });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Current password is incorrect." });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ error: "New password must be different from the current one." });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword },
+    });
+
+    return res.status(200).json({ message: "Password changed successfully." });
+  } catch (err) {
+    console.error("[changePassword]", err);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+};
