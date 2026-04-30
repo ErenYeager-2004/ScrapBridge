@@ -4,9 +4,7 @@ import helmet from "helmet";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import prisma from "./src/config/prisma.js";
-import { verifyToken } from "./src/middleware/auth.middleware.js";
-import { requireRole } from "./src/middleware/role.middleware.js";
+
 
 // Route Imports
 import authRoutes         from "./src/routes/auth.routes.js";
@@ -47,26 +45,6 @@ app.use("/api/orders",        orderRoutes);
 app.use("/api/feedback",      feedbackRoutes);
 app.use("/api/admin",         adminRoutes);
 app.use("/api/admin/users",   userRoutes);
-
-// Collector List (used by Admin quote form)
-// GET /api/collectors → returns all users with role COLLECTOR
-app.get(
-  "/api/collectors",
-  verifyToken,
-  requireRole("ADMIN"),
-  async (req, res) => {
-    try {
-      const collectors = await prisma.user.findMany({
-        where: { role: "COLLECTOR" },
-        select: { id: true, name: true, email: true, phone: true },
-      });
-      return res.status(200).json({ collectors });
-    } catch (err) {
-      console.error("[GET /api/collectors]", err);
-      return res.status(500).json({ error: "Internal server error." });
-    }
-  }
-);
 
 // Health Check
 app.get("/api/health", (req, res) => {

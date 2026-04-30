@@ -145,3 +145,19 @@ export const exportInventory = async (req, res) => {
     return res.status(500).json({ error: "Failed to export inventory CSV." });
   }
 };
+
+// getCollectors
+// GET /api/admin/collectors [ADMIN ONLY]
+// Returns all users with role COLLECTOR
+export const getCollectors = async (req, res) => {
+  try {
+    const collectors = await prisma.user.findMany({
+      where: { role: "COLLECTOR" },
+      select: { id: true, name: true, email: true, phone: true },
+    });
+    return res.status(200).json({ collectors });
+  } catch (err) {
+    console.error("[getCollectors]", err);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+};

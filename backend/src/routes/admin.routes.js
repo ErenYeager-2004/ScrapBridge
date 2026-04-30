@@ -5,6 +5,7 @@ import {
   getDashboardStats,
   exportRequests,
   exportInventory,
+  getCollectors,         
 } from "../controllers/admin.controller.js";
 
 const router = Router();
@@ -33,4 +34,12 @@ router.get(
   exportInventory
 );
 
+
+// GET /api/admin/collectors — returns all collectors for admin use
+router.get(
+  "/collectors",
+  verifyToken,
+  requireRole("ADMIN"),
+  getCollectors
+);
 export default router;

@@ -1,13 +1,31 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, MapPin, Package, Image as ImageIcon, CheckCircle, XCircle, Clock, Loader, CalendarDays, UserCheck } from 'lucide-react';
-import toast from 'react-hot-toast';
-import useFetch from '../../hooks/useFetch';
-import { getRequestById, quoteRequest, rejectRequest, completeRequest, schedulePickup } from '../../api/requests.api';
-import StatusBadge from '../../components/common/StatusBadge';
-import ConfirmModal from '../../components/common/ConfirmModal';
-import { formatDate, formatCurrency } from '../../utils/formatters';
-import api from '../../api/axios';
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  User,
+  MapPin,
+  Package,
+  Image as ImageIcon,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Loader,
+  CalendarDays,
+  UserCheck,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import useFetch from "../../hooks/useFetch";
+import {
+  getRequestById,
+  quoteRequest,
+  rejectRequest,
+  completeRequest,
+  schedulePickup,
+} from "../../api/requests.api";
+import StatusBadge from "../../components/common/StatusBadge";
+import ConfirmModal from "../../components/common/ConfirmModal";
+import { formatDate, formatCurrency } from "../../utils/formatters";
+import api from "../../api/axios";
 
 export default function AdminRequestDetail() {
   const { id } = useParams();
@@ -21,19 +39,22 @@ export default function AdminRequestDetail() {
   /* ── collectors list (fetched only when status=ACCEPTED) ── */
   const [collectors, setCollectors] = useState([]);
   useEffect(() => {
-    if (request?.status === 'ACCEPTED') {
-      api.get('/collectors').then((res) => setCollectors(res.data.collectors ?? [])).catch(() => {});
+    if (request?.status === "ACCEPTED") {
+      api
+        .get("/admin/collectors")
+        .then((res) => setCollectors(res.data.collectors ?? []))
+        .catch(() => {});
     }
   }, [request?.status]);
 
   /* ── PENDING quote form state ── */
-  const [price, setPrice] = useState('');
-  const [proposedDate, setProposedDate] = useState('');
-  const [notes, setNotes] = useState('');
+  const [price, setPrice] = useState("");
+  const [proposedDate, setProposedDate] = useState("");
+  const [notes, setNotes] = useState("");
 
   /* ── ACCEPTED assign form state ── */
-  const [collectorId, setCollectorId] = useState('');
-  const [assignDate, setAssignDate] = useState('');
+  const [collectorId, setCollectorId] = useState("");
+  const [assignDate, setAssignDate] = useState("");
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -45,8 +66,8 @@ export default function AdminRequestDetail() {
   const [prevRequest, setPrevRequest] = useState(null);
   if (request && request !== prevRequest) {
     setPrevRequest(request);
-    setPrice(request.adminPrice ?? '');
-    setNotes(request.adminNotes ?? '');
+    setPrice(request.adminPrice ?? "");
+    setNotes(request.adminNotes ?? "");
     // Pre-fill assignDate from existing scheduledDate for ACCEPTED panel
     if (request.scheduledDate) {
       setAssignDate(request.scheduledDate.slice(0, 10));
@@ -59,8 +80,9 @@ export default function AdminRequestDetail() {
   /* ── handlers ── */
   const handleQuote = async (e) => {
     e.preventDefault();
-    if (!price) return toast.error('Please enter a price.');
-    if (!proposedDate) return toast.error('Please select a proposed pickup date.');
+    if (!price) return toast.error("Please enter a price.");
+    if (!proposedDate)
+      return toast.error("Please select a proposed pickup date.");
     setSubmitting(true);
     try {
       await quoteRequest(id, {
@@ -68,10 +90,10 @@ export default function AdminRequestDetail() {
         proposedDate: new Date(proposedDate).toISOString(),
         adminNotes: notes || undefined,
       });
-      toast.success('Quote sent to user.');
+      toast.success("Quote sent to user.");
       refetch();
     } catch (err) {
-      toast.error(err?.response?.data?.error ?? 'Failed to submit quote.');
+      toast.error(err?.response?.data?.error ?? "Failed to submit quote.");
     } finally {
       setSubmitting(false);
     }
@@ -79,18 +101,18 @@ export default function AdminRequestDetail() {
 
   const handleAssign = async (e) => {
     e.preventDefault();
-    if (!collectorId) return toast.error('Please select a collector.');
-    if (!assignDate) return toast.error('Please confirm a pickup date.');
+    if (!collectorId) return toast.error("Please select a collector.");
+    if (!assignDate) return toast.error("Please confirm a pickup date.");
     setSubmitting(true);
     try {
       await schedulePickup(id, {
         collectorId,
         scheduledDate: new Date(assignDate).toISOString(),
       });
-      toast.success('Collector assigned. Pickup is now scheduled.');
+      toast.success("Collector assigned. Pickup is now scheduled.");
       refetch();
     } catch (err) {
-      toast.error(err?.response?.data?.error ?? 'Failed to assign collector.');
+      toast.error(err?.response?.data?.error ?? "Failed to assign collector.");
     } finally {
       setSubmitting(false);
     }
@@ -101,10 +123,10 @@ export default function AdminRequestDetail() {
     setSubmitting(true);
     try {
       await rejectRequest(id, { rejectionReason: reason });
-      toast.success('Request rejected.');
+      toast.success("Request rejected.");
       refetch();
     } catch (err) {
-      toast.error(err?.response?.data?.error ?? 'Failed to reject request.');
+      toast.error(err?.response?.data?.error ?? "Failed to reject request.");
     } finally {
       setSubmitting(false);
     }
@@ -115,10 +137,10 @@ export default function AdminRequestDetail() {
     setSubmitting(true);
     try {
       await completeRequest(id);
-      toast.success('Request marked as completed!');
+      toast.success("Request marked as completed!");
       refetch();
     } catch (err) {
-      toast.error(err?.response?.data?.error ?? 'Failed to complete request.');
+      toast.error(err?.response?.data?.error ?? "Failed to complete request.");
     } finally {
       setSubmitting(false);
     }
@@ -136,8 +158,10 @@ export default function AdminRequestDetail() {
   if (error || !request) {
     return (
       <div className="p-8 text-center text-red-500">
-        Request not found or failed to load.{' '}
-        <button onClick={() => navigate(-1)} className="underline ml-1">Go back</button>
+        Request not found or failed to load.{" "}
+        <button onClick={() => navigate(-1)} className="underline ml-1">
+          Go back
+        </button>
       </div>
     );
   }
@@ -149,7 +173,7 @@ export default function AdminRequestDetail() {
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Back nav */}
       <button
-        onClick={() => navigate('/admin/requests')}
+        onClick={() => navigate("/admin/requests")}
         className="mb-6 inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
       >
         <ArrowLeft size={16} /> Back to All Requests
@@ -170,37 +194,54 @@ export default function AdminRequestDetail() {
 
       {/* Two-column layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
         {/* ── LEFT COLUMN (2/3) ── */}
         <div className="lg:col-span-2 space-y-6">
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* User info - Client Details */}
             <section className="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700/50 p-6 shadow-sm">
               <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-6 flex items-center gap-2">
-                <User size={16} className="text-green-600 dark:text-green-400" /> Client Details
+                <User
+                  size={16}
+                  className="text-green-600 dark:text-green-400"
+                />{" "}
+                Client Details
               </h2>
-              
+
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-14 h-14 bg-gray-900 dark:bg-gray-700 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                  {request.user?.name ? request.user.name.substring(0, 2).toUpperCase() : 'NA'}
+                  {request.user?.name
+                    ? request.user.name.substring(0, 2).toUpperCase()
+                    : "NA"}
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900 dark:text-white text-lg leading-tight">
-                    {request.user?.name ?? 'Unknown Client'}
+                    {request.user?.name ?? "Unknown Client"}
                   </h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">ScrapBridge User</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    ScrapBridge User
+                  </p>
                 </div>
               </div>
 
               <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 space-y-3">
                 <div className="grid grid-cols-3 items-center">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contact</span>
-                  <span className="col-span-2 text-sm text-gray-800 dark:text-gray-200 font-medium text-right">{request.contactPhone || request.user?.phone || '—'}</span>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    Contact
+                  </span>
+                  <span className="col-span-2 text-sm text-gray-800 dark:text-gray-200 font-medium text-right">
+                    {request.contactPhone || request.user?.phone || "—"}
+                  </span>
                 </div>
                 <div className="grid grid-cols-3 items-center">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Email</span>
-                  <span className="col-span-2 text-sm text-gray-800 dark:text-gray-200 font-medium text-right truncate" title={request.user?.email}>{request.user?.email ?? '—'}</span>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    Email
+                  </span>
+                  <span
+                    className="col-span-2 text-sm text-gray-800 dark:text-gray-200 font-medium text-right truncate"
+                    title={request.user?.email}
+                  >
+                    {request.user?.email ?? "—"}
+                  </span>
                 </div>
               </div>
             </section>
@@ -208,18 +249,29 @@ export default function AdminRequestDetail() {
             {/* Pickup address - Extraction Site */}
             <section className="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700/50 p-6 shadow-sm flex flex-col">
               <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-6 flex items-center gap-2">
-                <MapPin size={16} className="text-green-600 dark:text-green-400" /> Extraction Site
+                <MapPin
+                  size={16}
+                  className="text-green-600 dark:text-green-400"
+                />{" "}
+                Extraction Site
               </h2>
-              
+
               <div className="flex-1 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl p-6 flex flex-col items-center justify-center text-white mb-4 shadow-inner relative overflow-hidden group">
                 <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <MapPin size={48} className="text-white drop-shadow-md mb-2" strokeWidth={1.5} fill="#dc2626" />
-                <span className="text-xs font-bold uppercase tracking-wider text-white/90 drop-shadow">Location</span>
+                <MapPin
+                  size={48}
+                  className="text-white drop-shadow-md mb-2"
+                  strokeWidth={1.5}
+                  fill="#dc2626"
+                />
+                <span className="text-xs font-bold uppercase tracking-wider text-white/90 drop-shadow">
+                  Location
+                </span>
               </div>
 
               <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 flex-shrink-0">
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
-                  {request.pickupAddress || '—'}
+                  {request.pickupAddress || "—"}
                 </p>
               </div>
             </section>
@@ -229,43 +281,74 @@ export default function AdminRequestDetail() {
           <section className="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700/50 p-6 sm:p-8 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
               <h2 className="text-sm font-bold text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                <Package size={16} className="text-green-600 dark:text-green-400" /> Manifest & Yield
+                <Package
+                  size={16}
+                  className="text-green-600 dark:text-green-400"
+                />{" "}
+                Manifest & Yield
               </h2>
               <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                Total: {items.reduce((sum, item) => sum + (item.estimatedWeight || 0), 0)} kg
+                Total:{" "}
+                {items.reduce(
+                  (sum, item) => sum + (item.estimatedWeight || 0),
+                  0,
+                )}{" "}
+                kg
               </span>
             </div>
 
             {items.length === 0 ? (
               <div className="text-center py-8 bg-gray-50 dark:bg-gray-900/50 rounded-2xl">
-                <p className="text-sm text-gray-500 dark:text-gray-400">No items listed in manifest.</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  No items listed in manifest.
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full text-sm">
                   <thead>
                     <tr className="border-b-2 border-gray-100 dark:border-gray-700/50">
-                      <th className="text-left pb-4 text-xs font-black text-gray-400 uppercase tracking-wider">Material Grade</th>
-                      <th className="text-left pb-4 text-xs font-black text-gray-400 uppercase tracking-wider">Weight</th>
-                      <th className="text-left pb-4 text-xs font-black text-gray-400 uppercase tracking-wider">Purity</th>
-                      <th className="text-right pb-4 text-xs font-black text-gray-400 uppercase tracking-wider">Est. Value</th>
+                      <th className="text-left pb-4 text-xs font-black text-gray-400 uppercase tracking-wider">
+                        Material Grade
+                      </th>
+                      <th className="text-left pb-4 text-xs font-black text-gray-400 uppercase tracking-wider">
+                        Weight
+                      </th>
+                      <th className="text-left pb-4 text-xs font-black text-gray-400 uppercase tracking-wider">
+                        Purity
+                      </th>
+                      <th className="text-right pb-4 text-xs font-black text-gray-400 uppercase tracking-wider">
+                        Est. Value
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50">
                     {items.map((item, i) => (
-                      <tr key={i} className="group hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors">
+                      <tr
+                        key={i}
+                        className="group hover:bg-gray-50/50 dark:hover:bg-gray-700/20 transition-colors"
+                      >
                         <td className="py-5 pr-4">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
-                              <Package size={14} className="text-gray-500 dark:text-gray-400" />
+                              <Package
+                                size={14}
+                                className="text-gray-500 dark:text-gray-400"
+                              />
                             </div>
                             <div>
-                              <p className="font-bold text-gray-900 dark:text-white leading-tight">{item.materialType}</p>
-                              <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-0.5">Scrap Material</p>
+                              <p className="font-bold text-gray-900 dark:text-white leading-tight">
+                                {item.materialType}
+                              </p>
+                              <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-0.5">
+                                Scrap Material
+                              </p>
                             </div>
                           </div>
                         </td>
-                        <td className="py-5 text-gray-700 dark:text-gray-300 font-medium whitespace-nowrap">{item.estimatedWeight} kg</td>
+                        <td className="py-5 text-gray-700 dark:text-gray-300 font-medium whitespace-nowrap">
+                          {item.estimatedWeight} kg
+                        </td>
                         <td className="py-5 whitespace-nowrap">
                           <span className="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md">
                             Standard
@@ -289,7 +372,13 @@ export default function AdminRequestDetail() {
                 </h3>
                 <div className="flex flex-wrap gap-3">
                   {photos.map((photoPath, i) => (
-                    <a key={i} href={photoPath} target="_blank" rel="noopener noreferrer" className="block relative group">
+                    <a
+                      key={i}
+                      href={photoPath}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block relative group"
+                    >
                       <img
                         src={photoPath}
                         alt={`Scrap ${i + 1}`}
@@ -305,42 +394,55 @@ export default function AdminRequestDetail() {
 
         {/* ── RIGHT COLUMN (1/3) — Action Panel ── */}
         <div className="lg:col-span-1">
-          {request.status === 'COMPLETED' ? (
+          {request.status === "COMPLETED" ? (
             <div className="bg-[#0b6a41] rounded-[2rem] p-8 shadow-lg text-white sticky top-6 overflow-hidden relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3"></div>
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/4"></div>
-              
+
               <div className="relative z-10 flex flex-col items-center text-center space-y-6">
                 <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm shadow-inner">
-                  <CheckCircle size={28} className="text-white" strokeWidth={2.5} />
+                  <CheckCircle
+                    size={28}
+                    className="text-white"
+                    strokeWidth={2.5}
+                  />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black mb-1 tracking-tight">Request Completed</h2>
-                  <p className="text-green-100 text-xs font-medium">Funds transferred</p>
-                </div>
-                
-                <div className="w-full pt-4 pb-2">
-                  <p className="text-green-200 text-[10px] font-bold uppercase tracking-widest mb-1">Final Payout</p>
-                  <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-md">
-                    {formatCurrency(request.adminPrice).replace(/\.00$/, '')}
-                    <span className="text-xl sm:text-2xl text-green-200/80 font-bold drop-shadow-none">.00</span>
+                  <h2 className="text-lg font-black mb-1 tracking-tight">
+                    Request Completed
+                  </h2>
+                  <p className="text-green-100 text-xs font-medium">
+                    Funds transferred
                   </p>
                 </div>
 
-                
+                <div className="w-full pt-4 pb-2">
+                  <p className="text-green-200 text-[10px] font-bold uppercase tracking-widest mb-1">
+                    Final Payout
+                  </p>
+                  <p className="text-4xl sm:text-5xl font-black tracking-tight drop-shadow-md">
+                    {formatCurrency(request.adminPrice).replace(/\.00$/, "")}
+                    <span className="text-xl sm:text-2xl text-green-200/80 font-bold drop-shadow-none">
+                      .00
+                    </span>
+                  </p>
+                </div>
+
                 <div className="pt-2 text-[10px] text-green-200/80 font-medium tracking-wide">
                   Transaction ID: TRX-{request.id.slice(0, 8).toUpperCase()}
                 </div>
               </div>
             </div>
-          ) : request.status === 'REJECTED' ? (
+          ) : request.status === "REJECTED" ? (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 rounded-[2rem] p-8 shadow-sm sticky top-6 text-center">
               <div className="w-16 h-16 bg-red-100 dark:bg-red-800/50 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
                 <XCircle size={32} />
               </div>
-              <h2 className="text-xl font-bold text-red-700 dark:text-red-400 mb-2">Request Rejected</h2>
+              <h2 className="text-xl font-bold text-red-700 dark:text-red-400 mb-2">
+                Request Rejected
+              </h2>
               <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 text-sm text-red-600 dark:text-red-300 font-medium border border-red-100 dark:border-red-800">
-                {request.rejectionReason || 'No reason provided.'}
+                {request.rejectionReason || "No reason provided."}
               </div>
             </div>
           ) : (
@@ -350,7 +452,7 @@ export default function AdminRequestDetail() {
               </h2>
 
               {/* ── PENDING: quote form (no collector) ── */}
-              {request.status === 'PENDING' && (
+              {request.status === "PENDING" && (
                 <form onSubmit={handleQuote} className="space-y-5">
                   <div>
                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
@@ -370,7 +472,8 @@ export default function AdminRequestDetail() {
 
                   <div>
                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                      Proposed Pickup Date <span className="text-red-500">*</span>
+                      Proposed Pickup Date{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       id="proposed-date-input"
@@ -411,7 +514,11 @@ export default function AdminRequestDetail() {
                       disabled={submitting}
                       className="flex-[2] flex items-center justify-center gap-2 py-3 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors disabled:opacity-50 shadow-sm hover:shadow"
                     >
-                      {submitting ? <Loader size={16} className="animate-spin" /> : <CalendarDays size={16} />}
+                      {submitting ? (
+                        <Loader size={16} className="animate-spin" />
+                      ) : (
+                        <CalendarDays size={16} />
+                      )}
                       Send Quote
                     </button>
                   </div>
@@ -419,11 +526,12 @@ export default function AdminRequestDetail() {
               )}
 
               {/* ── ACCEPTED: assign collector ── */}
-              {request.status === 'ACCEPTED' && (
+              {request.status === "ACCEPTED" && (
                 <form onSubmit={handleAssign} className="space-y-5">
                   <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800/50 rounded-2xl p-4">
                     <p className="text-xs font-semibold text-teal-700 dark:text-teal-300 leading-relaxed">
-                      The user has accepted the quote. Assign a collector to confirm the pickup.
+                      The user has accepted the quote. Assign a collector to
+                      confirm the pickup.
                     </p>
                   </div>
 
@@ -439,14 +547,18 @@ export default function AdminRequestDetail() {
                     >
                       <option value="">Select a collector</option>
                       {collectors.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}{c.phone ? ` — ${c.phone}` : ''}</option>
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                          {c.phone ? ` — ${c.phone}` : ""}
+                        </option>
                       ))}
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                      Confirm Pickup Date <span className="text-red-500">*</span>
+                      Confirm Pickup Date{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       id="assign-date-input"
@@ -464,36 +576,56 @@ export default function AdminRequestDetail() {
                     disabled={submitting}
                     className="w-full flex items-center justify-center gap-2 py-3.5 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors disabled:opacity-50 shadow-sm hover:shadow"
                   >
-                    {submitting ? <Loader size={16} className="animate-spin" /> : <UserCheck size={16} />}
+                    {submitting ? (
+                      <Loader size={16} className="animate-spin" />
+                    ) : (
+                      <UserCheck size={16} />
+                    )}
                     Assign &amp; Schedule
                   </button>
                 </form>
               )}
 
               {/* ── QUOTED: awaiting user response ── */}
-              {request.status === 'QUOTED' && (
+              {request.status === "QUOTED" && (
                 <div className="space-y-6">
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded-2xl p-6 text-center">
                     <Clock size={28} className="mx-auto text-blue-500 mb-3" />
-                    <h3 className="text-base font-bold text-blue-800 dark:text-blue-300 mb-1">Awaiting User Response</h3>
+                    <h3 className="text-base font-bold text-blue-800 dark:text-blue-300 mb-1">
+                      Awaiting User Response
+                    </h3>
                     <p className="text-xs text-blue-600/80 dark:text-blue-400/80 font-medium">
                       The user has been notified to accept or reject the quote.
                     </p>
                   </div>
-                  
+
                   <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-5 space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Quoted Price</span>
-                      <span className="text-base font-black text-gray-900 dark:text-white">{formatCurrency(request.adminPrice)}</span>
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        Quoted Price
+                      </span>
+                      <span className="text-base font-black text-gray-900 dark:text-white">
+                        {formatCurrency(request.adminPrice)}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Proposed Date</span>
-                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{request.scheduledDate ? formatDate(request.scheduledDate) : '—'}</span>
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        Proposed Date
+                      </span>
+                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                        {request.scheduledDate
+                          ? formatDate(request.scheduledDate)
+                          : "—"}
+                      </span>
                     </div>
                     {request.adminNotes && (
                       <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
-                        <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Notes</span>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{request.adminNotes}</p>
+                        <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
+                          Notes
+                        </span>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {request.adminNotes}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -501,11 +633,13 @@ export default function AdminRequestDetail() {
               )}
 
               {/* ── SCHEDULED ── */}
-              {request.status === 'SCHEDULED' && (
+              {request.status === "SCHEDULED" && (
                 <div className="space-y-6">
                   <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/50 rounded-2xl p-6 text-center">
                     <Clock size={28} className="mx-auto text-purple-500 mb-3" />
-                    <h3 className="text-base font-bold text-purple-800 dark:text-purple-300 mb-1">Pickup Scheduled</h3>
+                    <h3 className="text-base font-bold text-purple-800 dark:text-purple-300 mb-1">
+                      Pickup Scheduled
+                    </h3>
                     <p className="text-xs text-purple-600/80 dark:text-purple-400/80 font-medium">
                       Waiting for the collector to mark this as collected.
                     </p>
@@ -513,40 +647,62 @@ export default function AdminRequestDetail() {
 
                   <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-5 space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Date</span>
-                      <span className="text-sm font-bold text-gray-900 dark:text-white">{formatDate(request.scheduledDate)}</span>
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        Date
+                      </span>
+                      <span className="text-sm font-bold text-gray-900 dark:text-white">
+                        {formatDate(request.scheduledDate)}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Collector</span>
-                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{request.collector?.name ?? 'Unassigned'}</span>
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        Collector
+                      </span>
+                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                        {request.collector?.name ?? "Unassigned"}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center pt-3 border-t border-gray-200 dark:border-gray-700">
-                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Price</span>
-                      <span className="text-base font-black text-gray-900 dark:text-white">{formatCurrency(request.adminPrice)}</span>
+                      <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        Price
+                      </span>
+                      <span className="text-base font-black text-gray-900 dark:text-white">
+                        {formatCurrency(request.adminPrice)}
+                      </span>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* ── COLLECTED: mark complete ── */}
-              {request.status === 'COLLECTED' && (
+              {request.status === "COLLECTED" && (
                 <div className="space-y-6">
                   <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-100 dark:border-cyan-800/50 rounded-2xl p-6 text-center">
                     <Package size={28} className="mx-auto text-cyan-500 mb-3" />
-                    <h3 className="text-base font-bold text-cyan-800 dark:text-cyan-300 mb-1">Scrap Collected</h3>
+                    <h3 className="text-base font-bold text-cyan-800 dark:text-cyan-300 mb-1">
+                      Scrap Collected
+                    </h3>
                     <p className="text-xs text-cyan-600/80 dark:text-cyan-400/80 font-medium">
                       Ready for final completion.
                     </p>
                   </div>
-                  
+
                   <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 flex justify-between items-center">
                     <div>
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Collector</p>
-                      <p className="text-sm font-bold text-gray-800 dark:text-gray-200">{request.collector?.name ?? '—'}</p>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                        Collector
+                      </p>
+                      <p className="text-sm font-bold text-gray-800 dark:text-gray-200">
+                        {request.collector?.name ?? "—"}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">Price</p>
-                      <p className="text-sm font-black text-gray-900 dark:text-white">{formatCurrency(request.adminPrice)}</p>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
+                        Price
+                      </p>
+                      <p className="text-sm font-black text-gray-900 dark:text-white">
+                        {formatCurrency(request.adminPrice)}
+                      </p>
                     </div>
                   </div>
 
@@ -556,7 +712,11 @@ export default function AdminRequestDetail() {
                     disabled={submitting}
                     className="w-full flex items-center justify-center gap-2 py-3.5 text-sm font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl transition-colors shadow-sm hover:shadow disabled:opacity-50"
                   >
-                    {submitting ? <Loader size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                    {submitting ? (
+                      <Loader size={16} className="animate-spin" />
+                    ) : (
+                      <CheckCircle size={16} />
+                    )}
                     Mark as Completed
                   </button>
                 </div>
